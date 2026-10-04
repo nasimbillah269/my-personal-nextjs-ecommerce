@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ultimate Organic Life — Next.js e‑commerce
 
-## Getting Started
+Storefront + admin panel built with Next.js 16 (App Router), Tailwind CSS v4, Drizzle ORM and MySQL/MariaDB.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Start MySQL** (XAMPP: start the *MySQL* module) and create a database:
+   ```sql
+   CREATE DATABASE uol_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
+2. **Configure env** — copy `.env.example` to `.env.local` and set:
+   - `DATABASE_URL` — e.g. `mysql://root:@localhost:3306/uol_ecommerce` (XAMPP's root has no password)
+   - `SESSION_SECRET` — any random string of 32+ characters
+3. **Install, migrate, seed:**
+   ```bash
+   npm install
+   npm run db:migrate          # creates the tables
+   npm run db:seed             # catalog, coupons, settings, admin user, demo orders
+   ```
+   The seed prints the admin email and password once. Set `ADMIN_EMAIL` / `ADMIN_PASSWORD` before seeding to choose your own.
+4. `npm run dev` → store at http://localhost:3000, admin at http://localhost:3000/admin
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+|---|---|
+| `npm run db:generate` | Create a new SQL migration after editing `src/db/schema.ts` |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:seed -- --reset` | Wipe catalog + orders and reseed (admins are kept). Add `--no-demo` to skip demo orders |
+| `npm run db:studio` | Browse the database in Drizzle Studio |
+| `npm run db:images` | Add the bundled product photos to products that have none (`-- --force` to replace) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Where things live
 
-## Learn More
+- `src/app/(shop)` — storefront pages (home, products, product detail, cart, checkout)
+- `src/app/admin` — admin panel (login + dashboard, orders, products, categories, coupons, customers, settings)
+- `src/db/schema.ts` — database tables
+- `src/server/queries.ts`, `src/server/shop-actions.ts` — storefront data + order placement
+- `src/server/admin/*` — admin queries and server actions (every one calls `requireAdmin()`)
+- `uploads/` — product images uploaded from the admin (served at `/media/...`; back this folder up)
+- `scripts/seed-images/` — starter product photos from Openverse/Flickr (CC0 / CC BY / CC BY-SA). Credits are in `credits.json` and shown under each product photo, as the licenses require. Replace them with your own product photos when you have them.
 
-To learn more about Next.js, take a look at the following resources:
+## Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Prices, stock and coupons are always re-checked on the server when an order is placed; stock is reduced in the same transaction.
+- Cancelling an order in the admin returns its items to stock.
+- bKash/Nagad: set your merchant number in **Admin → Settings**. Card payment is not connected to a gateway yet.
