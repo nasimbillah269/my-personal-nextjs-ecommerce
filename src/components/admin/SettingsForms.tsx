@@ -190,7 +190,7 @@ export function BrandingForm({
             <p className="mb-1.5 text-sm font-bold text-heading">Favicon (browser tab icon)</p>
             <div className="flex h-36 flex-col justify-center gap-4 rounded-xl border-2 border-dashed border-line bg-soft p-4">
               {/* Browser-tab mockup */}
-              <div className="mx-auto flex w-full max-w-xs items-center gap-2 rounded-t-lg border border-b-0 border-line bg-white px-3 py-2 shadow-sm">
+              <div className="mx-auto flex w-full max-w-xs items-center gap-2 rounded-t-lg border border-b-0 border-line bg-surface px-3 py-2 shadow-sm">
                 <span className="grid size-4 shrink-0 place-items-center overflow-hidden">
                   {favicon.preview ? (
                     <Image src={favicon.preview} alt="" width={16} height={16} unoptimized className="size-4 object-contain" />
@@ -202,7 +202,7 @@ export function BrandingForm({
                 <X className="ml-auto size-3 shrink-0 text-body" />
               </div>
               <div className="flex items-center justify-center gap-3">
-                <span className="grid size-14 place-items-center rounded-xl border border-line bg-white">
+                <span className="grid size-14 place-items-center rounded-xl border border-line bg-surface">
                   {favicon.preview ? (
                     <Image
                       src={favicon.preview}

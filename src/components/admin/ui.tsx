@@ -6,14 +6,14 @@ import { orderStatusMeta, paymentMethods, paymentStatusMeta } from "@/lib/checko
 /* ---------- Shared class names ---------- */
 
 export const inputCls =
-  "h-11 w-full rounded-lg border border-line bg-white px-3.5 text-sm text-heading outline-none transition placeholder:text-body/60 focus:border-brand focus:ring-4 focus:ring-brand-light aria-invalid:border-red-400";
+  "h-11 w-full rounded-lg border border-line bg-surface px-3.5 text-sm text-heading outline-none transition placeholder:text-body/60 focus:border-brand focus:ring-4 focus:ring-brand-light aria-invalid:border-red-400";
 export const labelCls = "mb-1.5 block text-sm font-bold text-heading";
 export const btnPrimary =
   "inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-linear-to-r from-brand to-emerald-500 px-4 text-sm font-bold text-white shadow-md shadow-brand/25 transition hover:shadow-lg hover:shadow-brand/30 hover:brightness-105 disabled:opacity-60";
 export const btnSecondary =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold text-heading transition hover:border-brand hover:text-brand disabled:opacity-60";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-bold text-heading transition hover:border-brand hover:text-brand disabled:opacity-60";
 export const btnDanger =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-surface px-4 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60";
 
 /* ---------- Layout ---------- */
 
@@ -51,9 +51,9 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`min-w-0 rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] ${className}`}>
+    <section className={`min-w-0 rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] ${className}`}>
       {title && (
-        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
           <h2 className="font-bold text-heading">{title}</h2>
           {action}
         </div>
@@ -185,7 +185,7 @@ export function Pagination({
   };
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
-  const btn = "grid size-9 place-items-center rounded-lg border border-line bg-white text-heading transition hover:border-brand hover:text-brand";
+  const btn = "grid size-9 place-items-center rounded-lg border border-line bg-surface text-heading transition hover:border-brand hover:text-brand";
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4 text-sm text-body">

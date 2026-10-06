@@ -4,3 +4,7 @@ export const PAYMENT_STATUSES = ["unpaid", "pending", "paid", "refunded"] as con
 export const PAYMENT_METHODS = ["cod", "bkash", "nagad", "card"] as const;
 export const DELIVERY_ZONES = ["inside", "outside"] as const;
 export const COUPON_TYPES = ["percent", "flat"] as const;
+
+/** Admin panel colour theme, stored in a cookie so the server renders the right one. */
+export type AdminTheme = "light" | "dark";
+export const ADMIN_THEME_COOKIE = "admin-theme";

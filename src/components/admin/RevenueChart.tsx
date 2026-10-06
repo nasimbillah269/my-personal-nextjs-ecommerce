@@ -101,7 +101,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
               </defs>
               {ticks.map((t) => (
                 <g key={t}>
-                  <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke="#eef1f5" strokeWidth={1} strokeDasharray="3 4" />
+                  <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} className="stroke-line" strokeWidth={1} strokeDasharray="3 4" />
                   <text x={PAD.left - 10} y={y(t)} dy="0.32em" textAnchor="end" className="fill-body text-[11px] tabular-nums">
                     ৳{compact(t)}
                   </text>
@@ -154,13 +154,13 @@ export function RevenueChart({ data }: { data: Point[] }) {
                   {formatTaka(data[peak].revenue)}
                 </text>
               )}
-              <line x1={PAD.left} x2={width - PAD.right} y1={PAD.top + plotH} y2={PAD.top + plotH} stroke="#d9dde3" strokeWidth={1} />
+              <line x1={PAD.left} x2={width - PAD.right} y1={PAD.top + plotH} y2={PAD.top + plotH} className="stroke-line" strokeWidth={1} />
             </svg>
           )}
 
           {hovered && hover !== null && (
             <div
-              className="pointer-events-none absolute z-10 w-44 -translate-x-1/2 rounded-lg border border-line bg-white px-3 py-2 shadow-lg"
+              className="pointer-events-none absolute z-10 w-44 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 shadow-lg"
               style={{
                 left: Math.min(Math.max(PAD.left + hover * band + band / 2, 90), width - 90),
                 top: Math.max(0, y(hovered.revenue) - 74),

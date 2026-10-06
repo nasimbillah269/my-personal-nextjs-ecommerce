@@ -88,7 +88,7 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/admin/orders"
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-brand-dark shadow-md transition hover:bg-white/90"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-[#0d838a] shadow-md transition hover:bg-white/90"
             >
               View orders <ArrowRight className="size-4" />
             </Link>
@@ -126,7 +126,7 @@ export default async function DashboardPage() {
         {tiles.map(({ label, value, cur, prev, icon: Icon, chip, glow }) => (
           <div
             key={label}
-            className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-12px_rgba(16,24,40,0.18)]"
+            className="relative overflow-hidden rounded-2xl border border-line bg-surface p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-12px_rgba(16,24,40,0.18)]"
           >
             <div aria-hidden="true" className={`pointer-events-none absolute -top-10 -right-10 size-32 rounded-full blur-2xl ${glow}`} />
             <div className="relative flex items-start justify-between">
@@ -182,7 +182,7 @@ export default async function DashboardPage() {
         >
           <div className="relative overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-slate-50/80 text-left text-xs font-bold tracking-wide text-body uppercase">
+              <thead className="bg-soft text-left text-xs font-bold tracking-wide text-body uppercase">
                 <tr>
                   <th className="px-5 py-3">Order</th>
                   <th className="px-5 py-3">Customer</th>
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
               </thead>
               <tbody>
                 {d.recent.map((o) => (
-                  <tr key={o.id} className="border-t border-slate-100 transition hover:bg-brand-light/30">
+                  <tr key={o.id} className="border-t border-line transition hover:bg-brand-light/30">
                     <td className="px-5 py-3">
                       <Link href={`/admin/orders/${o.id}`} className="font-bold text-brand hover:underline">
                         {o.orderNo}
@@ -225,7 +225,7 @@ export default async function DashboardPage() {
                   <li key={p.slug} className="flex items-center gap-3">
                     <span
                       className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
-                        i === 0 ? "bg-linear-to-br from-amber-300 to-orange-400 text-white" : "bg-slate-100 text-body"
+                        i === 0 ? "bg-linear-to-br from-amber-300 to-orange-400 text-white" : "bg-soft text-body"
                       }`}
                     >
                       {i + 1}

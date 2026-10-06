@@ -67,7 +67,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
                 <span className="flex flex-col items-center gap-1.5">
                   <span
                     className={`grid size-9 place-items-center rounded-full text-sm font-bold ${
-                      i <= step ? "bg-brand text-white" : "border-2 border-line bg-white text-body"
+                      i <= step ? "bg-brand text-white" : "border-2 border-line bg-surface text-body"
                     } ${i === step ? "ring-4 ring-brand-light" : ""}`}
                   >
                     {i < step ? <Check className="size-4" strokeWidth={3} /> : i + 1}

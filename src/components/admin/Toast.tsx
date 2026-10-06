@@ -26,7 +26,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <div
             key={t.id}
             role="status"
-            className="pointer-events-auto flex animate-pop items-start gap-3 rounded-xl border border-line bg-white p-4 shadow-xl"
+            className="pointer-events-auto flex animate-pop items-start gap-3 rounded-xl border border-line bg-surface p-4 shadow-xl"
           >
             {t.ok ? (
               <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-leaf" />

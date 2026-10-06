@@ -50,7 +50,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
               href={tabHref(t.value)}
               aria-current={active ? "page" : undefined}
               className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
-                active ? "bg-heading text-white" : "bg-white text-heading hover:bg-brand-light"
+                active ? "bg-brand text-white" : "bg-surface text-heading hover:bg-brand-light"
               }`}
             >
               {t.label}
@@ -113,7 +113,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                       <Link
                         href={`/admin/orders/${o.id}`}
                         aria-label={`Open order ${o.orderNo}`}
-                        className="inline-grid size-8 place-items-center rounded-lg text-body transition group-hover:bg-white group-hover:text-brand"
+                        className="inline-grid size-8 place-items-center rounded-lg text-body transition group-hover:bg-surface group-hover:text-brand"
                       >
                         <ChevronRight className="size-4" />
                       </Link>

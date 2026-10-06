@@ -16,7 +16,7 @@ function HeaderSkeleton({ action = false }: { action?: boolean }) {
 
 function CardSkeleton({ className = "", title = true, children }: { className?: string; title?: boolean; children: React.ReactNode }) {
   return (
-    <div className={`min-w-0 rounded-2xl border border-line bg-white ${className}`}>
+    <div className={`min-w-0 rounded-2xl border border-line bg-surface ${className}`}>
       {title && (
         <div className="border-b border-line px-5 py-4">
           <Sk className="h-5 w-40" />
@@ -56,7 +56,7 @@ export function DashboardSkeleton() {
       <HeaderSkeleton />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="rounded-2xl border border-line bg-white p-5">
+          <div key={i} className="rounded-2xl border border-line bg-surface p-5">
             <div className="flex items-start justify-between">
               <Sk className="h-3.5 w-24" />
               <Sk className="size-10 rounded-xl" />
@@ -94,7 +94,7 @@ export function DashboardSkeleton() {
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="border-b border-line px-5 py-4">
             <Sk className="h-5 w-36" />
           </div>
@@ -147,11 +147,11 @@ export function TablePageSkeleton({
       {tabs && (
         <div className="mb-4 flex gap-2 overflow-hidden">
           {Array.from({ length: 7 }, (_, i) => (
-            <Sk key={i} className="h-9 w-28 shrink-0 rounded-full bg-white" />
+            <Sk key={i} className="h-9 w-28 shrink-0 rounded-full bg-surface" />
           ))}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl border border-line bg-white">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
         <div className="flex flex-wrap gap-3 border-b border-line p-4">
           <Sk className="h-11 min-w-56 flex-1 rounded-lg" />
           {Array.from({ length: filters }, (_, i) => (
@@ -159,7 +159,7 @@ export function TablePageSkeleton({
           ))}
         </div>
         <div className="bg-soft px-5 py-3.5">
-          <Sk className="h-3 w-1/3 bg-white" />
+          <Sk className="h-3 w-1/3 bg-surface" />
         </div>
         <TableRows rows={8} thumb={thumb} cols={cols} />
         <div className="flex items-center justify-between border-t border-line px-5 py-4">
@@ -201,7 +201,7 @@ export function OrderDetailSkeleton() {
         </div>
       </CardSkeleton>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="border-b border-line px-5 py-4">
             <Sk className="h-5 w-24" />
           </div>
@@ -310,9 +310,9 @@ export function ManagerSkeleton({ label, thumb = false }: { label: string; thumb
     <LoadingRegion label={label}>
       <HeaderSkeleton />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="bg-soft px-5 py-3.5">
-            <Sk className="h-3 w-1/3 bg-white" />
+            <Sk className="h-3 w-1/3 bg-surface" />
           </div>
           <TableRows rows={6} thumb={thumb} cols={5} />
         </div>

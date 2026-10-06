@@ -14,6 +14,7 @@
   --color-body: #7e7e7e;
   --color-line: #ececec;
   --color-soft: #f4f6fa;
+  --color-surface: #ffffff;
 
   --animate-pop: pop 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.3) both;
   @keyframes pop {
@@ -154,4 +155,49 @@ body {
   &:hover::-webkit-scrollbar-thumb {
     background: rgb(255 255 255 / 0.18);
   }
+}
+
+/* Admin dark mode (toggled in AdminShell, persisted in the `admin-theme` cookie).
+   Admin components use theme tokens, so flipping the tokens here re-skins the whole panel. */
+.admin-dark {
+  color-scheme: dark;
+  --color-surface: #131f2e;
+  --color-soft: #0b1522;
+  --color-line: #233246;
+  --color-heading: #e6edf6;
+  --color-body: #94a3b8;
+  --color-brand-light: rgb(19 162 168 / 0.18);
+  --color-brand-dark: #4fd1d6;
+
+  /* Status / alert tints: dim the pastel backgrounds, brighten the text. */
+  --color-amber-50: rgb(245 158 11 / 0.08);
+  --color-orange-50: rgb(249 115 22 / 0.08);
+  --color-amber-100: rgb(245 158 11 / 0.16);
+  --color-amber-200: rgb(245 158 11 / 0.3);
+  --color-amber-700: #fbbf24;
+  --color-sky-100: rgb(14 165 233 / 0.16);
+  --color-sky-700: #7dd3fc;
+  --color-indigo-100: rgb(99 102 241 / 0.18);
+  --color-indigo-700: #a5b4fc;
+  --color-violet-100: rgb(139 92 246 / 0.18);
+  --color-violet-700: #c4b5fd;
+  --color-emerald-100: rgb(16 185 129 / 0.16);
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #6ee7b7;
+  --color-rose-100: rgb(244 63 94 / 0.16);
+  --color-rose-600: #fb7185;
+  --color-rose-700: #fda4af;
+  --color-slate-100: rgb(148 163 184 / 0.14);
+  --color-slate-600: #cbd5e1;
+  --color-red-50: rgb(239 68 68 / 0.12);
+  --color-red-200: rgb(239 68 68 / 0.35);
+  --color-red-400: #f87171;
+  --color-red-500: #f87171;
+  --color-red-600: #f87171;
+}
+.admin-dark .skeleton {
+  background-color: #1a2738;
+}
+.admin-dark .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
 }

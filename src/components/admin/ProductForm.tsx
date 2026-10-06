@@ -383,7 +383,7 @@ export function ProductForm({
                   type="color"
                   value={tint}
                   onChange={(e) => setTint(e.target.value)}
-                  className="h-11 w-full cursor-pointer rounded-lg border border-line bg-white p-1"
+                  className="h-11 w-full cursor-pointer rounded-lg border border-line bg-surface p-1"
                 />
               </Field>
             </div>
