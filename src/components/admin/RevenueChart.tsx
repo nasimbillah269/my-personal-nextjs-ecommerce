@@ -93,9 +93,15 @@ export function RevenueChart({ data }: { data: Point[] }) {
         <div ref={wrap} className="relative" style={{ height: HEIGHT }} onMouseLeave={() => setHover(null)}>
           {width > 0 && (
             <svg width={width} height={HEIGHT} role="img" aria-label="Daily revenue for the last 30 days">
+              <defs>
+                <linearGradient id="revenue-bar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="100%" stopColor="#13a2a8" />
+                </linearGradient>
+              </defs>
               {ticks.map((t) => (
                 <g key={t}>
-                  <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke="#ececec" strokeWidth={1} />
+                  <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke="#eef1f5" strokeWidth={1} strokeDasharray="3 4" />
                   <text x={PAD.left - 10} y={y(t)} dy="0.32em" textAnchor="end" className="fill-body text-[11px] tabular-nums">
                     ৳{compact(t)}
                   </text>
@@ -110,7 +116,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
                     {h > 0 && (
                       <path
                         d={barPath(x, y(d.revenue), barW, h)}
-                        fill="#13a2a8"
+                        fill="url(#revenue-bar)"
                         opacity={hover === null || hover === i ? 1 : 0.35}
                         className="transition-opacity"
                       />

@@ -14,7 +14,7 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
   const [pendingCount, settings] = await Promise.all([getPendingOrderCount(), getSettings()]);
 
   return (
-    <AdminShell admin={admin} pendingCount={pendingCount} storeName={settings.storeName} logoUrl={settings.logoUrl}>
+    <AdminShell admin={admin} pendingCount={pendingCount} storeName={settings.storeName} faviconUrl={settings.faviconUrl}>
       {children}
     </AdminShell>
   );

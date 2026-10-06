@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowDownRight, ArrowRight, ArrowUpRight, Banknote, PackageX, ShoppingBag, Users, Wallet } from "lucide-react";
 import { RevenueChart } from "@/components/admin/RevenueChart";
-import { Card, formatDate, formatTaka, PageHeader, PaymentMethodLabel, StatusBadge, Thumb } from "@/components/admin/ui";
+import { Card, formatDate, formatTaka, PaymentMethodLabel, StatusBadge, Thumb } from "@/components/admin/ui";
 import { ORDER_STATUSES } from "@/lib/constants";
 import { orderStatusMeta } from "@/lib/checkout";
 import { getDashboardData } from "@/server/admin/queries";
@@ -31,10 +31,42 @@ export default async function DashboardPage() {
   const d = await getDashboardData();
 
   const tiles = [
-    { label: "Revenue", value: formatTaka(d.current.revenue), cur: d.current.revenue, prev: d.previous.revenue, icon: Banknote },
-    { label: "Orders", value: d.current.orders.toLocaleString(), cur: d.current.orders, prev: d.previous.orders, icon: ShoppingBag },
-    { label: "Average order value", value: formatTaka(d.current.aov), cur: d.current.aov, prev: d.previous.aov, icon: Wallet },
-    { label: "Customers", value: d.current.customers.toLocaleString(), cur: d.current.customers, prev: d.previous.customers, icon: Users },
+    {
+      label: "Revenue",
+      value: formatTaka(d.current.revenue),
+      cur: d.current.revenue,
+      prev: d.previous.revenue,
+      icon: Banknote,
+      chip: "from-teal-400 to-emerald-500 shadow-emerald-500/30",
+      glow: "bg-emerald-400/15",
+    },
+    {
+      label: "Orders",
+      value: d.current.orders.toLocaleString(),
+      cur: d.current.orders,
+      prev: d.previous.orders,
+      icon: ShoppingBag,
+      chip: "from-indigo-500 to-violet-500 shadow-indigo-500/30",
+      glow: "bg-indigo-400/15",
+    },
+    {
+      label: "Average order value",
+      value: formatTaka(d.current.aov),
+      cur: d.current.aov,
+      prev: d.previous.aov,
+      icon: Wallet,
+      chip: "from-amber-400 to-orange-500 shadow-orange-500/30",
+      glow: "bg-amber-400/15",
+    },
+    {
+      label: "Customers",
+      value: d.current.customers.toLocaleString(),
+      cur: d.current.customers,
+      prev: d.previous.customers,
+      icon: Users,
+      chip: "from-rose-500 to-pink-500 shadow-rose-500/30",
+      glow: "bg-rose-400/15",
+    },
   ];
 
   const totalOrders = Object.values(d.statusCounts).reduce((a, b) => a + b, 0);
@@ -42,17 +74,42 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader
-        title={`Welcome back, ${admin.name.split(" ")[0]} 👋`}
-        description="Here’s how your store performed over the last 30 days. Cancelled orders are excluded."
-      />
+      <section className="relative mb-6 overflow-hidden rounded-3xl bg-linear-to-br from-[#0e5f68] via-brand to-emerald-500 p-6 text-white shadow-xl shadow-brand/20 sm:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full bg-white/10 blur-2xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/3 size-72 rounded-full bg-emerald-300/20 blur-3xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-white/75">Dashboard overview</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {admin.name.split(" ")[0]} 👋</h1>
+            <p className="mt-2 max-w-xl text-sm text-white/80">
+              Here’s how your store performed over the last 30 days. Cancelled orders are excluded.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/orders"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-brand-dark shadow-md transition hover:bg-white/90"
+            >
+              View orders <ArrowRight className="size-4" />
+            </Link>
+            <Link
+              href="/admin/products/new"
+              className="inline-flex h-10 items-center rounded-xl bg-white/15 px-4 text-sm font-bold text-white ring-1 ring-white/30 backdrop-blur transition hover:bg-white/25"
+            >
+              Add product
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {d.pendingCount > 0 && (
         <Link
           href="/admin/orders?status=pending"
-          className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm transition hover:border-amber-300"
+          className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-linear-to-r from-amber-50 to-orange-50 p-4 text-sm shadow-sm transition hover:border-amber-300 hover:shadow-md"
         >
-          <AlertTriangle className="size-5 shrink-0 text-amber-600" />
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-500/30">
+            <AlertTriangle className="size-4.5" />
+          </span>
           <span className="flex-1 text-heading">
             <b>
               {d.pendingCount} pending order{d.pendingCount === 1 ? "" : "s"}
@@ -66,16 +123,20 @@ export default async function DashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {tiles.map(({ label, value, cur, prev, icon: Icon }) => (
-          <div key={label} className="rounded-2xl border border-line bg-white p-5">
-            <div className="flex items-start justify-between">
+        {tiles.map(({ label, value, cur, prev, icon: Icon, chip, glow }) => (
+          <div
+            key={label}
+            className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-12px_rgba(16,24,40,0.18)]"
+          >
+            <div aria-hidden="true" className={`pointer-events-none absolute -top-10 -right-10 size-32 rounded-full blur-2xl ${glow}`} />
+            <div className="relative flex items-start justify-between">
               <p className="text-sm font-semibold text-body">{label}</p>
-              <span className="grid size-10 place-items-center rounded-xl bg-brand-light">
-                <Icon className="size-5 text-brand-dark" />
+              <span className={`grid size-11 place-items-center rounded-xl bg-linear-to-br text-white shadow-lg ${chip}`}>
+                <Icon className="size-5" />
               </span>
             </div>
-            <p className="mt-2 text-2xl font-bold text-heading">{value}</p>
-            <div className="mt-2">
+            <p className="relative mt-2 text-2xl font-bold tracking-tight text-heading tabular-nums">{value}</p>
+            <div className="relative mt-2">
               <Delta current={cur} previous={prev} />
             </div>
           </div>
@@ -98,7 +159,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="h-2 rounded-full bg-soft">
                     <div
-                      className="h-full rounded-full bg-brand transition-all"
+                      className="h-full rounded-full bg-linear-to-r from-brand to-emerald-400 transition-all"
                       style={{ width: `${(d.statusCounts[s] / maxStatus) * 100}%` }}
                     />
                   </div>
@@ -121,7 +182,7 @@ export default async function DashboardPage() {
         >
           <div className="relative overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-soft text-left text-xs font-bold tracking-wide text-body uppercase">
+              <thead className="bg-slate-50/80 text-left text-xs font-bold tracking-wide text-body uppercase">
                 <tr>
                   <th className="px-5 py-3">Order</th>
                   <th className="px-5 py-3">Customer</th>
@@ -132,7 +193,7 @@ export default async function DashboardPage() {
               </thead>
               <tbody>
                 {d.recent.map((o) => (
-                  <tr key={o.id} className="border-t border-line transition hover:bg-soft/60">
+                  <tr key={o.id} className="border-t border-slate-100 transition hover:bg-brand-light/30">
                     <td className="px-5 py-3">
                       <Link href={`/admin/orders/${o.id}`} className="font-bold text-brand hover:underline">
                         {o.orderNo}
@@ -162,7 +223,13 @@ export default async function DashboardPage() {
               <ol className="space-y-3">
                 {d.top.map((p, i) => (
                   <li key={p.slug} className="flex items-center gap-3">
-                    <span className="w-4 text-xs font-bold text-body">{i + 1}</span>
+                    <span
+                      className={`grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
+                        i === 0 ? "bg-linear-to-br from-amber-300 to-orange-400 text-white" : "bg-slate-100 text-body"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
                     <Thumb emoji={p.emoji} tint={p.tint} name={p.name} size="sm" />
                     <span className="min-w-0 flex-1">
                       <span className="line-clamp-1 text-sm font-semibold text-heading">{p.name}</span>

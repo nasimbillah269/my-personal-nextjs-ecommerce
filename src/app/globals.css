@@ -130,3 +130,28 @@ body {
     display: none;
   }
 }
+
+/* Thin, quiet scrollbar for the dark admin sidebar: invisible until hovered. */
+@utility sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-gutter: stable;
+  &:hover,
+  &:focus-within {
+    scrollbar-color: rgb(255 255 255 / 0.18) transparent;
+  }
+  /* Older Safari, which lacks scrollbar-color. */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: transparent;
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.18);
+  }
+}

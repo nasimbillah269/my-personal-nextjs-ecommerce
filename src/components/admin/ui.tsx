@@ -9,7 +9,7 @@ export const inputCls =
   "h-11 w-full rounded-lg border border-line bg-white px-3.5 text-sm text-heading outline-none transition placeholder:text-body/60 focus:border-brand focus:ring-4 focus:ring-brand-light aria-invalid:border-red-400";
 export const labelCls = "mb-1.5 block text-sm font-bold text-heading";
 export const btnPrimary =
-  "inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-bold text-white transition hover:bg-brand-dark disabled:opacity-60";
+  "inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-linear-to-r from-brand to-emerald-500 px-4 text-sm font-bold text-white shadow-md shadow-brand/25 transition hover:shadow-lg hover:shadow-brand/30 hover:brightness-105 disabled:opacity-60";
 export const btnSecondary =
   "inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 text-sm font-bold text-heading transition hover:border-brand hover:text-brand disabled:opacity-60";
 export const btnDanger =
@@ -29,7 +29,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-heading">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-heading">{title}</h1>
         {description && <p className="mt-1 text-sm text-body">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -51,9 +51,9 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`min-w-0 rounded-2xl border border-line bg-white ${className}`}>
+    <section className={`min-w-0 rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_-12px_rgba(16,24,40,0.10)] ${className}`}>
       {title && (
-        <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <h2 className="font-bold text-heading">{title}</h2>
           {action}
         </div>
