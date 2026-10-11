@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS } from "@/lib/checkout";
 import { parseDescription } from "@/lib/description";
 import type { Category, OrderView, Product, ProductDetails, StoreSettings } from "@/lib/types";
 
-const { categories, products, productVariants, settings, orders, orderItems } = schema;
+const { categories, products, productVariants, settings, orders, orderItems, sliders } = schema;
 
 type ProductRow = typeof products.$inferSelect;
 type VariantRow = typeof productVariants.$inferSelect;
@@ -34,6 +34,17 @@ export const getSettings = cache(async (): Promise<StoreSettings> => {
     faviconUrl: map.get("faviconUrl") || null,
   };
 });
+
+/* ---------- Home page sliders ---------- */
+
+export const getActiveSliders = cache(
+  async (): Promise<{ id: number; title: string; image: string; link: string | null }[]> =>
+    db
+      .select({ id: sliders.id, title: sliders.title, image: sliders.image, link: sliders.link })
+      .from(sliders)
+      .where(eq(sliders.isActive, true))
+      .orderBy(asc(sliders.sortOrder), asc(sliders.id)),
+);
 
 /* ---------- Catalog ---------- */
 

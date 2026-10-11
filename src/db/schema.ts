@@ -151,3 +151,14 @@ export const settings = mysqlTable("settings", {
   key: varchar("key", { length: 64 }).primaryKey(),
   value: text("value").notNull(),
 });
+
+/** Home page hero banners. Shown in sort order; the built-in slides are used while none are active. */
+export const sliders = mysqlTable("sliders", {
+  id: int("id").primaryKey().autoincrement(),
+  title: varchar("title", { length: 120 }).notNull(),
+  image: varchar("image", { length: 255 }).notNull(),
+  link: varchar("link", { length: 500 }),
+  sortOrder: int("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

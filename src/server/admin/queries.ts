@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq, gte, inArray, like, lt, lte, ne, or, sql, su
 import { db, schema } from "@/db";
 import { ORDER_STATUSES } from "@/lib/constants";
 
-const { orders, orderItems, products, productVariants, categories, coupons } = schema;
+const { orders, orderItems, products, productVariants, categories, coupons, sliders } = schema;
 
 export const PAGE_SIZE = 15;
 
@@ -254,6 +254,13 @@ export async function listCategoriesWithCounts() {
 
 export async function listCoupons() {
   return db.select().from(coupons).orderBy(desc(coupons.createdAt));
+}
+
+export async function listSliders() {
+  return db
+    .select({ id: sliders.id, title: sliders.title, image: sliders.image, link: sliders.link, sortOrder: sliders.sortOrder, isActive: sliders.isActive })
+    .from(sliders)
+    .orderBy(asc(sliders.sortOrder), asc(sliders.id));
 }
 
 /* ---------- Customers (derived from orders, grouped by phone) ---------- */

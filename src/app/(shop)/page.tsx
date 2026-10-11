@@ -8,10 +8,11 @@ import {
 } from "@/components/HomeSections";
 import { Reveal } from "@/components/Reveal";
 import { container } from "@/lib/ui";
-import { getCategories, getDailyBestProducts, getPopularProducts } from "@/server/queries";
+import { getActiveSliders, getCategories, getDailyBestProducts, getPopularProducts } from "@/server/queries";
 
 export default async function Home() {
-  const [categories, popular, dailyBest] = await Promise.all([
+  const [sliders, categories, popular, dailyBest] = await Promise.all([
+    getActiveSliders(),
     getCategories(),
     getPopularProducts(),
     getDailyBestProducts(),
@@ -20,7 +21,7 @@ export default async function Home() {
   return (
     <main className={`${container} flex-1 pt-4 lg:pt-6`}>
       <Reveal variant="zoom">
-        <HeroSlider />
+        <HeroSlider images={sliders} />
       </Reveal>
       <ShopByCategories categories={categories} />
       <PopularProducts products={popular} />

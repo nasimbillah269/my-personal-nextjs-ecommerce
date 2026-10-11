@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -91,7 +92,7 @@ function TextSlide({
   );
 }
 
-const slides = [
+const defaultSlides = [
   <DiscountSlide key="discount" />,
   <TextSlide
     key="fresh"
@@ -111,19 +112,35 @@ const slides = [
   />,
 ];
 
-export function HeroSlider() {
+export type HeroSlide = { id: number; title: string; image: string; link: string | null };
+
+function ImageSlide({ slide, priority }: { slide: HeroSlide; priority: boolean }) {
+  const img = <Image src={slide.image} alt={slide.title} fill priority={priority} sizes="(min-width: 1280px) 1280px, 100vw" className="object-cover" />;
+  if (!slide.link) return <div className="relative h-full">{img}</div>;
+  const external = /^https?:\/\//.test(slide.link);
+  return (
+    <Link href={slide.link} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} className="relative block h-full">
+      {img}
+    </Link>
+  );
+}
+
+/** Shows the admin-uploaded banners; falls back to the built-in slides while none are active. */
+export function HeroSlider({ images = [] }: { images?: HeroSlide[] }) {
+  const slides = images.length ? images.map((s, i) => <ImageSlide key={s.id} slide={s} priority={i === 0} />) : defaultSlides;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  const count = slides.length;
   const go = useCallback((dir: number) => {
-    setIndex((i) => (i + dir + slides.length) % slides.length);
-  }, []);
+    setIndex((i) => (i + dir + count) % count);
+  }, [count]);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || count < 2) return;
     const t = setInterval(() => go(1), 6000);
     return () => clearInterval(t);
-  }, [go, paused]);
+  }, [go, paused, count]);
 
   return (
     <section
@@ -143,34 +160,38 @@ export function HeroSlider() {
         ))}
       </div>
 
-      <button
-        type="button"
-        aria-label="Previous slide"
-        onClick={() => go(-1)}
-        className="absolute top-1/2 left-2 hidden size-10 -translate-y-1/2 place-items-center rounded-full text-white/80 transition hover:bg-white/30 hover:text-white sm:grid lg:left-12"
-      >
-        <ChevronLeft className="size-7" />
-      </button>
-      <button
-        type="button"
-        aria-label="Next slide"
-        onClick={() => go(1)}
-        className="absolute top-1/2 right-2 hidden size-10 -translate-y-1/2 place-items-center rounded-full text-white/80 transition hover:bg-white/30 hover:text-white sm:grid lg:right-12"
-      >
-        <ChevronRight className="size-7" />
-      </button>
+      {count > 1 && (
+        <>
+        <button
+          type="button"
+          aria-label="Previous slide"
+          onClick={() => go(-1)}
+          className="absolute top-1/2 left-2 hidden size-10 -translate-y-1/2 place-items-center rounded-full text-white/80 transition hover:bg-white/30 hover:text-white sm:grid lg:left-12"
+        >
+          <ChevronLeft className="size-7" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next slide"
+          onClick={() => go(1)}
+          className="absolute top-1/2 right-2 hidden size-10 -translate-y-1/2 place-items-center rounded-full text-white/80 transition hover:bg-white/30 hover:text-white sm:grid lg:right-12"
+        >
+          <ChevronRight className="size-7" />
+        </button>
 
-      <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-4">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Go to slide ${i + 1}`}
-            onClick={() => setIndex(i)}
-            className={`h-2 rounded-full transition-all ${i === index ? "w-6 bg-brand" : "w-2 bg-heading/20"}`}
-          />
-        ))}
-      </div>
+        <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5 sm:bottom-4">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => setIndex(i)}
+              className={`h-2 rounded-full transition-all ${i === index ? "w-6 bg-brand" : "w-2 bg-heading/20"}`}
+            />
+          ))}
+        </div>
+        </>
+      )}
     </section>
   );
 }

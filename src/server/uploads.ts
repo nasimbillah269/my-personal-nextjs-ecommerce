@@ -33,7 +33,7 @@ export function validateImage(
 }
 
 /** Saves the file and returns its public URL, e.g. /media/products/abc.webp */
-export async function saveImage(file: File, folder: "products" | "branding"): Promise<string> {
+export async function saveImage(file: File, folder: "products" | "branding" | "sliders"): Promise<string> {
   const dir = path.join(UPLOAD_ROOT, folder);
   await mkdir(dir, { recursive: true });
   const name = `${randomUUID()}${FAVICON_TYPES[file.type]}`;
