@@ -6,6 +6,7 @@ import { Carousel } from "./Carousel";
 import { LogoMark } from "./Logo";
 import { ProductCard } from "./ProductCard";
 import { Reveal } from "./Reveal";
+import { NewsletterForm } from "./NewsletterForm";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -126,20 +127,7 @@ export function NewsletterBanner() {
           <p className="mt-3 text-sm text-heading/80 sm:text-lg">
             Start your daily shopping with <span className="font-bold text-brand-dark">Ultimate Organic Life</span>
           </p>
-          <form className="mt-6 flex max-w-md overflow-hidden rounded-full bg-white shadow-sm">
-            <input
-              type="email"
-              required
-              placeholder="Your email address"
-              className="min-w-0 flex-1 px-5 py-3 text-sm outline-none"
-            />
-            <button
-              type="submit"
-              className="bg-brand px-5 text-sm font-bold text-white transition hover:bg-brand-dark sm:px-8"
-            >
-              Subscribe
-            </button>
-          </form>
+          <NewsletterForm />
         </div>
         <p className="pointer-events-none absolute right-6 bottom-0 hidden text-[140px] leading-none opacity-90 md:block lg:right-16 lg:text-[200px]">
           🧺

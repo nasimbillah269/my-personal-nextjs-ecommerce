@@ -24,7 +24,7 @@ const settingsSchema = z.object({
 });
 
 export async function saveSettings(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("settings");
   const parsed = settingsSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };
 
@@ -45,7 +45,7 @@ export async function saveSettings(_prev: FormState, formData: FormData): Promis
 const uploaded = (v: FormDataEntryValue | null) => (v instanceof File && v.size > 0 ? v : null);
 
 export async function saveBranding(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("settings");
   const logo = uploaded(formData.get("logo"));
   const favicon = uploaded(formData.get("favicon"));
 

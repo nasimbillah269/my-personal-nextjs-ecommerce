@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { ImagePlus, Info, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import type { FormState } from "@/server/admin/form-state";
 import { saveProduct } from "@/server/admin/product-actions";
-import { useFormAction } from "./controls";
+import { Toggle, useFormAction } from "./controls";
 import { btnPrimary, btnSecondary, Card, Field, inputCls } from "./ui";
 
 type VariantInput = { label: string; price: string; oldPrice: string };
@@ -44,22 +44,6 @@ const slugify = (s: string) =>
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 160);
-
-function Toggle({ name, label, hint, defaultChecked }: { name: string; label: string; hint: string; defaultChecked: boolean }) {
-  return (
-    <label className="flex cursor-pointer items-start justify-between gap-4 py-3">
-      <span>
-        <span className="block text-sm font-bold text-heading">{label}</span>
-        <span className="text-xs text-body">{hint}</span>
-      </span>
-      <span className="relative mt-0.5 inline-flex shrink-0">
-        <input type="checkbox" name={name} defaultChecked={defaultChecked} className="peer sr-only" />
-        <span className="h-6 w-11 rounded-full bg-line transition peer-checked:bg-brand peer-focus-visible:ring-4 peer-focus-visible:ring-brand-light" />
-        <span className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
-      </span>
-    </label>
-  );
-}
 
 export function ProductForm({
   initial,

@@ -5,7 +5,8 @@ import { Card, formatDate, formatTaka, PaymentMethodLabel, StatusBadge, Thumb } 
 import { ORDER_STATUSES } from "@/lib/constants";
 import { orderStatusMeta } from "@/lib/checkout";
 import { getDashboardData } from "@/server/admin/queries";
-import { requireAdmin } from "@/server/auth";
+import { can, requireAdmin } from "@/server/auth";
+import { LimitedDashboard } from "@/components/admin/LimitedDashboard";
 
 export const metadata = { title: "Dashboard" };
 
@@ -28,6 +29,7 @@ function Delta({ current, previous }: { current: number; previous: number }) {
 
 export default async function DashboardPage() {
   const admin = await requireAdmin();
+  if (!can(admin, "orders")) return <LimitedDashboard admin={admin} />;
   const d = await getDashboardData();
 
   const tiles = [

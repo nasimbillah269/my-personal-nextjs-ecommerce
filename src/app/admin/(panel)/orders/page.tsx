@@ -20,7 +20,7 @@ import { requireAdmin } from "@/server/auth";
 export const metadata = { title: "Orders" };
 
 export default async function OrdersPage({ searchParams }: PageProps<"/admin/orders">) {
-  await requireAdmin();
+  await requireAdmin("orders");
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === "string" && sp[k] ? (sp[k] as string) : undefined);
   const filters = { q: str("q"), status: str("status"), payment: str("payment"), page: Math.max(1, Number(sp.page) || 1) };

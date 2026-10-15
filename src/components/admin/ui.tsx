@@ -160,6 +160,48 @@ export function EmptyState({ icon: Icon, title, text, action }: { icon: typeof C
   );
 }
 
+/* ---------- Status tabs (link based, keeps other query params) ---------- */
+
+export function StatusTabs({
+  tabs,
+  active,
+  basePath,
+  params,
+}: {
+  tabs: { value?: string; label: string; count: number }[];
+  active?: string;
+  basePath: string;
+  params: Record<string, string | undefined>;
+}) {
+  const href = (status?: string) => {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) if (v && k !== "status" && k !== "page") q.set(k, v);
+    if (status) q.set("status", status);
+    const s = q.toString();
+    return s ? `${basePath}?${s}` : basePath;
+  };
+  return (
+    <nav className="no-scrollbar mb-4 flex gap-2 overflow-x-auto" aria-label="Filter by status">
+      {tabs.map((t) => {
+        const isActive = active === t.value;
+        return (
+          <Link
+            key={t.label}
+            href={href(t.value)}
+            aria-current={isActive ? "page" : undefined}
+            className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
+              isActive ? "bg-brand text-white" : "bg-surface text-heading hover:bg-brand-light"
+            }`}
+          >
+            {t.label}
+            <span className={`rounded-full px-2 text-xs ${isActive ? "bg-white/20" : "bg-soft text-body"}`}>{t.count}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 /* ---------- Pagination (link based, keeps other query params) ---------- */
 
 export function Pagination({

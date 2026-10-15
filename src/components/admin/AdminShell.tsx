@@ -33,18 +33,21 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { ADMIN_THEME_COOKIE, type AdminTheme } from "@/lib/constants";
+import { ADMIN_THEME_COOKIE, type AdminPermission, type AdminTheme } from "@/lib/constants";
 import { logout } from "@/server/admin/auth-actions";
 import { LogoMark } from "../Logo";
 import { ToastProvider } from "./Toast";
 
 type Icon = ComponentType<{ className?: string }>;
-type NavLink = { href: string; label: string; icon: Icon; exact?: boolean };
+/** `perm`: the role permission needed to see the link; links without one are visible to every admin. */
+type NavLink = { href: string; label: string; icon: Icon; exact?: boolean; perm?: AdminPermission };
+type Badge = "orders" | "comments";
+type NavChild = { href: string; label: string; badge?: Badge; perm?: AdminPermission };
 type NavGroup = {
   label: string;
   icon: Icon;
-  badge?: "pending";
-  children: { href: string; label: string; badge?: "pending" }[];
+  badge?: Badge;
+  children: NavChild[];
 };
 type NavSection = { title?: string; items: (NavLink | NavGroup)[] };
 
@@ -54,20 +57,21 @@ const sections: NavSection[] = [
       {
         label: "Posts",
         icon: FileText,
+        badge: "comments",
         children: [
-          { href: "/admin/posts", label: "All Posts" },
-          { href: "/admin/posts/new", label: "New Post" },
-          { href: "/admin/posts/categories", label: "Categories" },
-          { href: "/admin/posts/tags", label: "Tags" },
-          { href: "/admin/posts/comments", label: "Comments" },
+          { href: "/admin/posts", label: "All Posts", perm: "posts" },
+          { href: "/admin/posts/new", label: "New Post", perm: "posts" },
+          { href: "/admin/posts/categories", label: "Categories", perm: "posts" },
+          { href: "/admin/posts/tags", label: "Tags", perm: "posts" },
+          { href: "/admin/posts/comments", label: "Comments", badge: "comments", perm: "posts" },
         ],
       },
       {
         label: "Pages",
         icon: Files,
         children: [
-          { href: "/admin/pages", label: "All Pages" },
-          { href: "/admin/pages/new", label: "New Page" },
+          { href: "/admin/pages", label: "All Pages", perm: "pages" },
+          { href: "/admin/pages/new", label: "New Page", perm: "pages" },
         ],
       },
       {
@@ -85,24 +89,24 @@ const sections: NavSection[] = [
         label: "Ecommerce Setting",
         icon: SlidersHorizontal,
         children: [
-          { href: "/admin/categories", label: "Categories" },
-          { href: "/admin/coupons", label: "Coupons" },
+          { href: "/admin/categories", label: "Categories", perm: "catalog" },
+          { href: "/admin/coupons", label: "Coupons", perm: "catalog" },
         ],
       },
       {
         label: "Products",
         icon: AlignLeft,
         children: [
-          { href: "/admin/products", label: "All Products" },
-          { href: "/admin/products/new", label: "Add Product" },
+          { href: "/admin/products", label: "All Products", perm: "products" },
+          { href: "/admin/products/new", label: "Add Product", perm: "products" },
         ],
       },
       {
         label: "Order Management",
         icon: Network,
-        badge: "pending",
+        badge: "orders",
         children: [
-          { href: "/admin/orders", label: "All Orders", badge: "pending" },
+          { href: "/admin/orders", label: "All Orders", badge: "orders", perm: "orders" },
         ],
       },
     ],
@@ -114,9 +118,9 @@ const sections: NavSection[] = [
         label: "Reports Management",
         icon: ChartLine,
         children: [
-          { href: "/admin/reports/sales", label: "Sales Report" },
-          { href: "/admin/reports/products", label: "Product Report" },
-          { href: "/admin/reports/customers", label: "Customer Report" },
+          { href: "/admin/reports/sales", label: "Sales Report", perm: "orders" },
+          { href: "/admin/reports/products", label: "Product Report", perm: "orders" },
+          { href: "/admin/reports/customers", label: "Customer Report", perm: "orders" },
         ],
       },
     ],
@@ -126,9 +130,9 @@ const sections: NavSection[] = [
     items: [
       { href: "/admin/clients", label: "Clients", icon: Contact },
       { href: "/admin/brands", label: "Brands", icon: Castle },
-      { href: "/admin/sliders", label: "Sliders", icon: Laptop },
+      { href: "/admin/sliders", label: "Sliders", icon: Laptop, perm: "sliders" },
       { href: "/admin/galleries", label: "Galleries", icon: Images },
-      { href: "/admin/menus", label: "Menus Setting", icon: Menu },
+      { href: "/admin/menus", label: "Menus Setting", icon: Menu, perm: "menus" },
       { href: "/admin/theme", label: "Theme Setting", icon: Palette },
     ],
   },
@@ -139,13 +143,15 @@ const sections: NavSection[] = [
         href: "/admin/users/admins",
         label: "Administrator Users",
         icon: UserCog,
+        perm: "admins",
       },
-      { href: "/admin/users/roles", label: "Roles Users", icon: ShieldCheck },
-      { href: "/admin/customers", label: "Customer Users", icon: Users },
+      { href: "/admin/users/roles", label: "Roles Users", icon: ShieldCheck, perm: "admins" },
+      { href: "/admin/customers", label: "Customer Users", icon: Users, perm: "customers" },
       {
         href: "/admin/users/subscribers",
         label: "Subscribe Users",
         icon: UserCheck,
+        perm: "subscribers",
       },
     ],
   },
@@ -159,18 +165,32 @@ const sections: NavSection[] = [
         icon: Settings,
         exact: true,
       },
-      { href: "/admin/settings/mail", label: "Mail Setting", icon: Mail },
+      { href: "/admin/settings/mail", label: "Mail Setting", icon: Mail, perm: "settings" },
       {
         href: "/admin/settings/sms",
         label: "SMS Setting",
         icon: MessagesSquare,
+        perm: "settings",
       },
-      { href: "/admin/settings/social", label: "Social Setting", icon: Share2 },
+      { href: "/admin/settings/social", label: "Social Setting", icon: Share2, perm: "settings" },
     ],
   },
 ];
 
-const nav = sections.flatMap((s) => s.items);
+/** The sidebar for one admin: links their role can't open are dropped, then any emptied group or section. */
+function visibleSections(permissions: AdminPermission[]): NavSection[] {
+  const allowed = (perm?: AdminPermission) => !perm || permissions.includes(perm);
+  return sections
+    .map((section) => ({
+      ...section,
+      items: section.items.flatMap((item): (NavLink | NavGroup)[] => {
+        if (!isGroup(item)) return allowed(item.perm) ? [item] : [];
+        const children = item.children.filter((c) => allowed(c.perm));
+        return children.length ? [{ ...item, children }] : [];
+      }),
+    }))
+    .filter((section) => section.items.length > 0);
+}
 
 const isGroup = (item: NavLink | NavGroup): item is NavGroup =>
   "children" in item;
@@ -178,6 +198,8 @@ const isGroup = (item: NavLink | NavGroup): item is NavGroup =>
 export function AdminShell({
   admin,
   pendingCount,
+  pendingComments,
+  permissions,
   storeName,
   faviconUrl,
   initialTheme,
@@ -185,12 +207,16 @@ export function AdminShell({
 }: {
   admin: { name: string; email: string };
   pendingCount: number;
+  pendingComments: number;
+  permissions: AdminPermission[];
   storeName: string;
   faviconUrl: string | null;
   initialTheme: AdminTheme;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const shown = visibleSections(permissions);
+  const nav = shown.flatMap((s) => s.items);
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<AdminTheme>(initialTheme);
   const toggleTheme = () => {
@@ -228,14 +254,15 @@ export function AdminShell({
     activeChild ??
     nav.filter((n): n is NavLink => !isGroup(n)).find(isLinkActive);
 
-  const pendingBadge = (active: boolean) =>
-    pendingCount > 0 && (
+  const badgeCount = (kind: Badge) => (kind === "orders" ? pendingCount : pendingComments);
+  const pendingBadge = (kind: Badge, active: boolean) =>
+    badgeCount(kind) > 0 && (
       <span
         className={`grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold ${
           active ? "bg-white text-[#0d838a]" : "bg-amber-400 text-heading"
         }`}
       >
-        {pendingCount}
+        {badgeCount(kind)}
       </span>
     );
 
@@ -279,7 +306,7 @@ export function AdminShell({
         className="sidebar-scroll flex-1 overflow-y-auto pr-1 pb-4 pl-3"
         aria-label="Admin"
       >
-        {sections.map((section, i) => (
+        {shown.map((section, i) => (
           <div key={section.title ?? i} className={i > 0 ? "mt-5" : ""}>
             {section.title && (
               <p className="mb-2 px-3 text-xs font-bold tracking-wider text-brand uppercase">
@@ -307,9 +334,7 @@ export function AdminShell({
                         <span className="min-w-0 flex-1 truncate text-left">
                           {label}
                         </span>
-                        {badge === "pending" &&
-                          !expanded &&
-                          pendingBadge(false)}
+                        {badge && !expanded && pendingBadge(badge, false)}
                         <ChevronRight
                           className={`size-4 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
                         />
@@ -333,7 +358,7 @@ export function AdminShell({
                                 <span className="min-w-0 flex-1 truncate">
                                   {c.label}
                                 </span>
-                                {c.badge === "pending" && pendingBadge(active)}
+                                {c.badge && pendingBadge(c.badge, active)}
                               </Link>
                             );
                           })}

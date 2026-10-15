@@ -7,6 +7,7 @@ import { Check, Heart, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/ui";
 import { useCart } from "./CartProvider";
+import { useCartToast } from "./CartToast";
 import { LogoMark } from "./Logo";
 
 function ProductImage({ product }: { product: Product }) {
@@ -44,6 +45,7 @@ export function ProductCard({
   variant?: "compact" | "full";
 }) {
   const { addToCart, wishlist, toggleWishlist } = useCart();
+  const notifyAdded = useCartToast();
   const [added, setAdded] = useState(false);
   const inWishlist = wishlist.includes(product.id);
   const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
@@ -51,7 +53,7 @@ export function ProductCard({
   const soldOut = product.stock <= 0;
 
   const handleAdd = () => {
-    addToCart({
+    const item = {
       productId: product.id,
       variant: product.variant,
       price: product.price,
@@ -59,7 +61,9 @@ export function ProductCard({
       emoji: product.emoji,
       tint: product.tint,
       image: product.image ?? null,
-    });
+    };
+    addToCart(item);
+    notifyAdded(item);
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
   };

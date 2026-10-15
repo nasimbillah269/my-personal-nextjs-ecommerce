@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/admin/orders/[id]
 }
 
 export default async function OrderDetailPage({ params }: PageProps<"/admin/orders/[id]">) {
-  await requireAdmin();
+  await requireAdmin("orders");
   const { id } = await params;
   const data = await getOrderDetail(Number(id));
   if (!data) notFound();

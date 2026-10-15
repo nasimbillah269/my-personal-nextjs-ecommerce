@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   Headset,
@@ -21,15 +21,31 @@ import { container } from "@/lib/ui";
 import { useCart } from "./CartProvider";
 import { Logo } from "./Logo";
 import { useStore } from "./StoreProvider";
+import type { MenuLink } from "@/server/menus";
 
-const navLinks = [
+/** Used until a menu is assigned to "Header navigation" in Admin → Menus. */
+const defaultNav: MenuLink[] = [
   { label: "Home", href: "/" },
   { label: "All Products", href: "/products" },
   { label: "FAQ", href: "#" },
   { label: "Contact", href: "#footer" },
-  { label: "Blogs", href: "#" },
+  { label: "Blogs", href: "/blog" },
   { label: "How to Order", href: "#" },
-];
+].map((l) => ({ ...l, newTab: false, children: [] }));
+
+function NavLink({ link, className, onClick, children }: { link: MenuLink; className: string; onClick?: () => void; children?: React.ReactNode }) {
+  return (
+    <Link
+      href={link.href}
+      onClick={onClick}
+      className={className}
+      {...(link.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {link.label}
+      {children}
+    </Link>
+  );
+}
 
 function SearchBar({ className = "" }: { className?: string }) {
   const router = useRouter();
@@ -106,7 +122,9 @@ function HeaderAction({
 
 export function Header() {
   const { cartCount, wishlist } = useCart();
-  const { settings: contact, categories } = useStore();
+  const { settings: contact, categories, menus, customer } = useStore();
+  const nav = menus.header?.items ?? defaultNav;
+  const topLinks = menus["top-bar"]?.items;
   const [menuOpen, setMenuOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
   const catRef = useRef<HTMLDivElement>(null);
@@ -130,11 +148,22 @@ export function Header() {
       <div className="hidden border-b border-line md:block">
         <div className={`${container} flex h-9 items-center justify-between text-xs text-body`}>
           <div className="flex items-center gap-3">
-            <Link href="#" className="hover:text-brand">About Us</Link>
-            <span className="h-3 w-px bg-line" />
-            <Link href="#" className="flex items-center gap-1 hover:text-brand">
-              <Truck className="size-3.5" /> Order Tracking
-            </Link>
+            {topLinks ? (
+              topLinks.map((l, i) => (
+                <Fragment key={`${l.href}-${i}`}>
+                  {i > 0 && <span className="h-3 w-px bg-line" />}
+                  <NavLink link={l} className="hover:text-brand" />
+                </Fragment>
+              ))
+            ) : (
+              <>
+                <Link href="#" className="hover:text-brand">About Us</Link>
+                <span className="h-3 w-px bg-line" />
+                <Link href="#" className="flex items-center gap-1 hover:text-brand">
+                  <Truck className="size-3.5" /> Order Tracking
+                </Link>
+              </>
+            )}
           </div>
           <p className="flex items-center gap-1">
             Need help? Call Us:
@@ -163,7 +192,12 @@ export function Header() {
           <div className="ml-auto flex items-center gap-4 md:ml-0 lg:gap-7">
             <HeaderAction icon={Heart} label="Wishlist" count={wishlist.length} />
             <HeaderAction icon={ShoppingCart} label="Cart" count={cartCount} href="/cart" />
-            <HeaderAction icon={User} label="Account" className="hidden sm:flex" />
+            <HeaderAction
+              icon={User}
+              label={customer ? customer.name.split(/\s+/)[0] : "Account"}
+              href={customer ? "/account" : "/login"}
+              className="hidden sm:flex"
+            />
           </div>
         </div>
         <div className={`${container} pb-3 md:hidden`}>
@@ -201,13 +235,32 @@ export function Header() {
           </div>
 
           <ul className="flex items-center gap-8 xl:gap-10">
-            {navLinks.map((l) => (
-              <li key={l.label}>
-                <Link href={l.href} className="text-sm font-bold text-heading transition hover:text-brand">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
+            {nav.map((l, i) =>
+              l.children.length ? (
+                <li key={`${l.href}-${i}`} className="group relative">
+                  <NavLink link={l} className="flex items-center gap-1 text-sm font-bold text-heading transition group-hover:text-brand">
+                    <ChevronDown className="size-3.5 transition group-focus-within:rotate-180 group-hover:rotate-180" />
+                  </NavLink>
+                  {/* Dropdown opens on hover and on keyboard focus */}
+                  <div className="invisible absolute top-full left-1/2 z-50 -translate-x-1/2 pt-4 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                    <ul className="min-w-52 rounded-xl border border-line bg-white p-2 shadow-xl">
+                      {l.children.map((c, j) => (
+                        <li key={`${c.href}-${j}`}>
+                          <NavLink
+                            link={c}
+                            className="block rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap text-heading transition hover:bg-brand-light hover:text-brand"
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ) : (
+                <li key={`${l.href}-${i}`}>
+                  <NavLink link={l} className="text-sm font-bold text-heading transition hover:text-brand" />
+                </li>
+              ),
+            )}
           </ul>
 
           <a href={`tel:${contact.phone}`} className="flex items-center gap-2.5">
@@ -241,15 +294,18 @@ export function Header() {
             </button>
           </div>
           <ul className="border-b border-line p-4">
-            {navLinks.map((l) => (
-              <li key={l.label}>
-                <Link
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block py-2.5 font-bold text-heading hover:text-brand"
-                >
-                  {l.label}
-                </Link>
+            {nav.map((l, i) => (
+              <li key={`${l.href}-${i}`}>
+                <NavLink link={l} onClick={() => setMenuOpen(false)} className="block py-2.5 font-bold text-heading hover:text-brand" />
+                {l.children.length > 0 && (
+                  <ul className="mb-1 ml-3 border-l-2 border-brand-light pl-3">
+                    {l.children.map((c, j) => (
+                      <li key={`${c.href}-${j}`}>
+                        <NavLink link={c} onClick={() => setMenuOpen(false)} className="block py-2 text-sm font-semibold text-body hover:text-brand" />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

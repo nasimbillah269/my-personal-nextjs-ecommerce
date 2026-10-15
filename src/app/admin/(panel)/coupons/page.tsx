@@ -6,7 +6,7 @@ import { requireAdmin } from "@/server/auth";
 export const metadata = { title: "Coupons" };
 
 export default async function CouponsPage() {
-  await requireAdmin();
+  await requireAdmin("catalog");
   const coupons = await listCoupons();
   return (
     <>

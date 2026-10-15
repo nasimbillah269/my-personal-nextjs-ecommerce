@@ -41,6 +41,8 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   }
 
   failures.delete(email);
+  if (!admin.isActive) return { error: "This admin account is deactivated. Ask a Super Admin to re-enable it." };
+  await db.update(schema.admins).set({ lastLoginAt: new Date() }).where(eq(schema.admins.id, admin.id));
   await createSession(admin.id);
   const next = String(formData.get("next") ?? "");
   redirect(next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin");

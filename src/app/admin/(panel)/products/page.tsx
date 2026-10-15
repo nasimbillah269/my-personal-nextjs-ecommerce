@@ -10,7 +10,7 @@ import { getCategories } from "@/server/queries";
 export const metadata = { title: "Products" };
 
 export default async function ProductsAdminPage({ searchParams }: PageProps<"/admin/products">) {
-  await requireAdmin();
+  await requireAdmin("products");
   const sp = await searchParams;
   const str = (k: string) => (typeof sp[k] === "string" && sp[k] ? (sp[k] as string) : undefined);
   const filters = { q: str("q"), category: str("category"), status: str("status"), page: Math.max(1, Number(sp.page) || 1) };

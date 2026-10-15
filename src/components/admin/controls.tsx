@@ -136,3 +136,20 @@ export function useFormAction<S extends { message?: string; ok?: boolean } | nul
   };
   return { state, onSubmit, pending };
 }
+
+/** On/off switch backed by a real checkbox, so it submits with the form ("on" when checked). */
+export function Toggle({ name, label, hint, defaultChecked }: { name: string; label: string; hint: string; defaultChecked: boolean }) {
+  return (
+    <label className="flex cursor-pointer items-start justify-between gap-4 py-3">
+      <span>
+        <span className="block text-sm font-bold text-heading">{label}</span>
+        <span className="text-xs text-body">{hint}</span>
+      </span>
+      <span className="relative mt-0.5 inline-flex shrink-0">
+        <input type="checkbox" name={name} defaultChecked={defaultChecked} className="peer sr-only" />
+        <span className="h-6 w-11 rounded-full bg-line transition peer-checked:bg-brand peer-focus-visible:ring-4 peer-focus-visible:ring-brand-light" />
+        <span className="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+      </span>
+    </label>
+  );
+}

@@ -130,8 +130,21 @@ const paymentIcons: Record<PaymentId, typeof Banknote> = {
 export function CheckoutView() {
   const router = useRouter();
   const { ready, lines, cartCount, subtotal, coupon, clearCart, applyCoupon, syncLines } = useCart();
-  const { settings } = useStore();
-  const [form, setForm] = useState<Form>(initialForm);
+  const { settings, customer } = useStore();
+  // Signed-in shoppers start with their saved details.
+  const [form, setForm] = useState<Form>(() =>
+    customer
+      ? {
+          ...initialForm,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email ?? "",
+          division: customer.division || initialForm.division,
+          area: customer.area,
+          address: customer.address,
+        }
+      : initialForm,
+  );
   const [errors, setErrors] = useState<Errors>({});
   const [placing, setPlacing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

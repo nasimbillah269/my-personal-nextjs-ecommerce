@@ -6,7 +6,7 @@ import { requireAdmin } from "@/server/auth";
 export const metadata = { title: "Sliders" };
 
 export default async function SlidersPage() {
-  await requireAdmin();
+  await requireAdmin("sliders");
   const sliders = await listSliders();
   return (
     <>

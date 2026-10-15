@@ -7,7 +7,7 @@ import { getCategories } from "@/server/queries";
 export const metadata = { title: "Edit product" };
 
 export default async function EditProductPage({ params }: PageProps<"/admin/products/[id]">) {
-  await requireAdmin();
+  await requireAdmin("products");
   const { id } = await params;
   const [data, categories] = await Promise.all([getProductForEdit(Number(id)), getCategories()]);
   if (!data) notFound();

@@ -9,6 +9,7 @@ import { PAYMENT_METHODS } from "@/lib/constants";
 import { computeTotals, divisions, isValidBdPhone, normalizePhone } from "@/lib/checkout";
 import { LAST_ORDER_COOKIE } from "./constants";
 import { findValidCoupon, type CouponCheck } from "./coupons";
+import { getCustomer } from "./customer-auth";
 import { getSettings } from "./queries";
 
 
@@ -118,7 +119,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     coupon = check.coupon;
   }
 
-  const settings = await getSettings();
+  const [settings, customer] = await Promise.all([getSettings(), getCustomer()]);
   const totals = computeTotals(subtotal, coupon, settings, o.delivery);
   const isMobilePay = o.payment === "bkash" || o.payment === "nagad";
 
@@ -152,6 +153,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
           shipping: totals.shipping ?? 0,
           total: totals.total,
           couponCode: totals.couponActive ? coupon!.code : null,
+          customerId: customer?.id ?? null,
         })
         .$returningId();
 

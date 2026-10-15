@@ -2,8 +2,18 @@
 
 import { createContext, useContext } from "react";
 import type { Category, StoreSettings } from "@/lib/types";
+import type { StoreMenus } from "@/server/menus";
 
-type StoreContextValue = { settings: StoreSettings; categories: Category[] };
+type StoreContextValue = {
+  settings: StoreSettings;
+  categories: Category[];
+  /** Featured store pages (About, Privacy Policy, …) for the footer. */
+  footerPages: { slug: string; title: string }[];
+  /** Menus built in Admin → Menus, by location. A missing location falls back to the built-in links. */
+  menus: StoreMenus;
+  /** The signed-in shopper (just what the header and checkout need), or null for guests. */
+  customer: { name: string; phone: string; email: string | null; division: string; area: string; address: string } | null;
+};
 
 const StoreContext = createContext<StoreContextValue | null>(null);
 

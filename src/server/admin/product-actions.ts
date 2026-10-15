@@ -55,7 +55,7 @@ function parseVariants(raw: FormDataEntryValue | null) {
 }
 
 export async function saveProduct(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("products");
 
   const id = Number(formData.get("id")) || null;
   const parsed = productSchema.safeParse({
@@ -124,7 +124,7 @@ export async function saveProduct(_prev: FormState, formData: FormData): Promise
 }
 
 export async function deleteProduct(id: number): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("products");
   const [row] = await db.select({ image: schema.products.image }).from(schema.products).where(eq(schema.products.id, id)).limit(1);
   if (!row) return { ok: false, message: "Product not found." };
   await db.delete(schema.products).where(eq(schema.products.id, id));
@@ -134,7 +134,7 @@ export async function deleteProduct(id: number): Promise<FormState> {
 }
 
 export async function setProductActive(id: number, isActive: boolean): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("products");
   await db.update(schema.products).set({ isActive }).where(eq(schema.products.id, id));
   revalidatePath("/admin/products");
   return { ok: true, message: isActive ? "Product is now visible in the store." : "Product hidden from the store." };

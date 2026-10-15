@@ -8,6 +8,7 @@ import { Check, Heart, Mail, Minus, Plus, Share2, ShoppingCart, Zap } from "luci
 import type { Product, ProductDetails } from "@/lib/types";
 import { formatPrice } from "@/lib/ui";
 import { useCart } from "./CartProvider";
+import { useCartToast } from "./CartToast";
 import { Logo, LogoMark } from "./Logo";
 import { useStore } from "./StoreProvider";
 
@@ -204,6 +205,7 @@ export function ProductInfo({
 }) {
   const router = useRouter();
   const { addToCart, wishlist, toggleWishlist } = useCart();
+  const notifyAdded = useCartToast();
   const [variantIndex, setVariantIndex] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState<"cart" | "buy" | null>(null);
@@ -214,22 +216,21 @@ export function ProductInfo({
   const discount = variant.oldPrice ? Math.round((1 - variant.price / variant.oldPrice) * 100) : 0;
 
   const add = (kind: "cart" | "buy") => {
-    addToCart(
-      {
-        productId: product.id,
-        variant: variant.label,
-        price: variant.price,
-        name: product.name,
-        emoji: product.emoji,
-        tint: product.tint,
-        image: product.image ?? null,
-      },
-      qty,
-    );
+    const item = {
+      productId: product.id,
+      variant: variant.label,
+      price: variant.price,
+      name: product.name,
+      emoji: product.emoji,
+      tint: product.tint,
+      image: product.image ?? null,
+    };
+    addToCart(item, qty);
     if (kind === "buy") {
       router.push("/checkout");
       return;
     }
+    notifyAdded(item, qty);
     setAdded(kind);
     setTimeout(() => setAdded(null), 1500);
   };

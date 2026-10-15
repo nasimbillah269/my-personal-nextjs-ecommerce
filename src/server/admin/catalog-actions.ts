@@ -25,7 +25,7 @@ const categorySchema = z.object({
 });
 
 export async function saveCategory(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("catalog");
   const id = Number(formData.get("id")) || null;
   const parsed = categorySchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };
@@ -46,7 +46,7 @@ export async function saveCategory(_prev: FormState, formData: FormData): Promis
 }
 
 export async function deleteCategory(id: number): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("catalog");
   const [{ n }] = await db.select({ n: count() }).from(schema.products).where(eq(schema.products.categoryId, id));
   if (n > 0) return { ok: false, message: `Move or delete its ${n} product${n === 1 ? "" : "s"} first.` };
   await db.delete(schema.categories).where(eq(schema.categories.id, id));
@@ -74,7 +74,7 @@ const couponSchema = z
   .refine((c) => c.type !== "percent" || c.value <= 100, { path: ["value"], message: "Percent can’t be over 100" });
 
 export async function saveCoupon(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("catalog");
   const id = Number(formData.get("id")) || null;
   const parsed = couponSchema.safeParse({ ...Object.fromEntries(formData), isActive: formData.get("isActive") === "on" });
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };
@@ -95,14 +95,14 @@ export async function saveCoupon(_prev: FormState, formData: FormData): Promise<
 }
 
 export async function deleteCoupon(id: number): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("catalog");
   await db.delete(schema.coupons).where(eq(schema.coupons.id, id));
   revalidatePath("/admin/coupons");
   return { ok: true, message: "Coupon deleted." };
 }
 
 export async function setCouponActive(id: number, isActive: boolean): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("catalog");
   await db.update(schema.coupons).set({ isActive }).where(eq(schema.coupons.id, id));
   revalidatePath("/admin/coupons");
   return { ok: true, message: isActive ? "Coupon activated." : "Coupon paused." };

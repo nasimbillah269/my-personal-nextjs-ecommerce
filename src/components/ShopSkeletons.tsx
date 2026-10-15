@@ -287,3 +287,112 @@ export function OrderSuccessSkeleton() {
     </ShopMain>
   );
 }
+
+/* ---------- Blog ---------- */
+
+function BlogSidebarSkeleton() {
+  return (
+    <div className="space-y-6">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="space-y-3 rounded-2xl border border-line p-5">
+          <Sk className="h-5 w-28" />
+          <SkLines count={4} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function BlogListSkeleton() {
+  return (
+    <ShopMain label="Loading blog…">
+      <Sk className="mb-6 h-3 w-32" />
+      <BannerSkeleton />
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-line">
+              <Sk className="aspect-[16/9] w-full rounded-none" />
+              <div className="space-y-3 p-5">
+                <Sk className="h-3 w-32" />
+                <Sk className="h-5 w-4/5" />
+                <SkLines count={3} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <BlogSidebarSkeleton />
+      </div>
+    </ShopMain>
+  );
+}
+
+export function BlogPostSkeleton() {
+  return (
+    <ShopMain label="Loading article…">
+      <Sk className="mb-6 h-3 w-64" />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="rounded-2xl border border-line p-5 sm:p-8">
+          <Sk className="h-6 w-24 rounded-full" />
+          <Sk className="mt-4 h-9 w-4/5" />
+          <Sk className="mt-4 h-4 w-72 max-w-full" />
+          <Sk className="mt-6 aspect-[16/9] w-full rounded-xl" />
+          <SkLines count={8} className="mt-8" />
+        </div>
+        <BlogSidebarSkeleton />
+      </div>
+    </ShopMain>
+  );
+}
+
+/* ---------- Store page (About, Privacy Policy, …) ---------- */
+
+export function StorePageSkeleton() {
+  return (
+    <main className="flex-1 pb-12">
+      <LoadingRegion label="Loading page…">
+        <div className="bg-soft">
+          <div className={`${container} space-y-3 py-10 sm:py-14 lg:py-20`}>
+            <Sk className="h-3 w-32 bg-white" />
+            <Sk className="h-10 w-72 max-w-full bg-white" />
+            <Sk className="h-4 w-96 max-w-full bg-white" />
+          </div>
+        </div>
+        <div className={`${container} mt-8 lg:mt-10`}>
+          <div className="mx-auto max-w-4xl rounded-2xl border border-line p-5 sm:p-8 lg:p-10">
+            <SkLines count={10} />
+          </div>
+        </div>
+      </LoadingRegion>
+    </main>
+  );
+}
+
+/* ---------- Customer account ---------- */
+
+export function AccountSkeleton() {
+  return (
+    <ShopMain label="Loading your account…">
+      <Sk className="mb-6 h-3 w-40" />
+      <div className="grid gap-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-8">
+        <div className="space-y-3">
+          <Sk className="h-[88px] w-full rounded-2xl" />
+          {[0, 1, 2, 3].map((i) => (
+            <Sk key={i} className="hidden h-11 w-full rounded-xl lg:block" />
+          ))}
+        </div>
+        <div className="space-y-6">
+          <Sk className="h-24 w-full rounded-2xl" />
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <Sk key={i} className="h-[88px] rounded-2xl" />
+            ))}
+          </div>
+          <div className="rounded-2xl border border-line p-5">
+            <SkLines count={6} />
+          </div>
+        </div>
+      </div>
+    </ShopMain>
+  );
+}

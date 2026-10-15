@@ -8,7 +8,7 @@
 import { config } from "dotenv";
 import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { count } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { drizzle, type MySql2Database } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
 import * as schema from "../src/db/schema";
@@ -112,7 +112,13 @@ async function main() {
   if (adminCount === 0) {
     const email = process.env.ADMIN_EMAIL ?? "admin@ultimateorganiclife.com";
     const password = process.env.ADMIN_PASSWORD ?? randomBytes(9).toString("base64url");
-    await db.insert(schema.admins).values({ name: "Store Admin", email, passwordHash: await bcrypt.hash(password, 12) });
+    // The migration creates the built-in Super Admin role; make sure it exists on fresh databases too.
+    await db
+      .insert(schema.roles)
+      .values({ name: "Super Admin", description: "Full access to everything, including admins and roles.", permissions: ["*"], isSystem: true })
+      .onDuplicateKeyUpdate({ set: { isSystem: true } });
+    const [superRole] = await db.select({ id: schema.roles.id }).from(schema.roles).where(eq(schema.roles.name, "Super Admin")).limit(1);
+    await db.insert(schema.admins).values({ name: "Store Admin", email, passwordHash: await bcrypt.hash(password, 12), roleId: superRole.id });
     console.log("\n  ┌──────────────── Admin login ────────────────");
     console.log(`  │ URL:      http://localhost:3000/admin`);
     console.log(`  │ Email:    ${email}`);

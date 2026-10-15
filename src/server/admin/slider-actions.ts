@@ -27,7 +27,7 @@ function revalidate() {
 }
 
 export async function saveSlider(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("sliders");
   const id = Number(formData.get("id")) || null;
   const parsed = sliderSchema.safeParse({ ...Object.fromEntries(formData), isActive: formData.get("isActive") === "on" });
   const errors = parsed.success ? {} : firstErrors(parsed.error);
@@ -62,7 +62,7 @@ export async function saveSlider(_prev: FormState, formData: FormData): Promise<
 }
 
 export async function deleteSlider(id: number): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("sliders");
   const s = schema.sliders;
   const [row] = await db.select({ image: s.image }).from(s).where(eq(s.id, id)).limit(1);
   if (!row) return { ok: false, message: "Slider not found." };
@@ -73,7 +73,7 @@ export async function deleteSlider(id: number): Promise<FormState> {
 }
 
 export async function setSliderActive(id: number, isActive: boolean): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("sliders");
   await db.update(schema.sliders).set({ isActive }).where(eq(schema.sliders.id, id));
   revalidate();
   return { ok: true, message: isActive ? "Slider is now shown on the home page." : "Slider hidden from the home page." };

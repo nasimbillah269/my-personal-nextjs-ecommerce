@@ -5,7 +5,7 @@ import { getCategories, getSettings } from "@/server/queries";
 export const metadata = { title: "Add product" };
 
 export default async function NewProductPage() {
-  await requireAdmin();
+  await requireAdmin("products");
   const [categories, settings] = await Promise.all([getCategories(), getSettings()]);
 
   return (

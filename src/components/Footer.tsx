@@ -11,19 +11,28 @@ import { useStore } from "./StoreProvider";
 
 const toLink = (label: string) => ({ label, href: "#" });
 
-const staticColumns = [
-  { title: "Company", links: ["About Us", "Delivery Information", "Privacy Policy", "Terms & Conditions", "Contact Us"].map(toLink) },
-  {
-    title: "Account",
-    links: [toLink("Sign In"), { label: "View Cart", href: "/cart" }, ...["My Wishlist", "Track My Order", "How to Order"].map(toLink)],
-  },
-];
+/** Shown until pages are marked "Featured" in Admin → Pages. */
+const placeholderCompanyLinks = ["About Us", "Delivery Information", "Privacy Policy", "Terms & Conditions", "Contact Us"].map(toLink);
+
+const accountColumn = {
+  title: "Account",
+  links: [{ label: "My Account", href: "/account" }, { label: "View Cart", href: "/cart" }, ...["My Wishlist", "Track My Order", "How to Order"].map(toLink)],
+};
 
 export function Footer() {
-  const { settings: contact, categories } = useStore();
-  const columns = [
-    ...staticColumns,
-    { title: "Popular", links: categories.slice(0, 6).map((c) => ({ label: c.name, href: `/products?category=${c.slug}` })) },
+  const { settings: contact, categories, footerPages, menus } = useStore();
+  // Footer menus from Admin → Menus replace the link columns; the menu name becomes the heading.
+  const fromMenu = (location: "footer-1" | "footer-2" | "footer-3") => {
+    const m = menus[location];
+    return m && { title: m.name, links: m.items.flatMap((l) => [l, ...l.children]) };
+  };
+  const columns: { title: string; links: { label: string; href: string; newTab?: boolean }[] }[] = [
+    fromMenu("footer-1") ?? {
+      title: "Company",
+      links: footerPages.length ? footerPages.map((p) => ({ label: p.title, href: `/${p.slug}` })) : placeholderCompanyLinks,
+    },
+    fromMenu("footer-2") ?? accountColumn,
+    fromMenu("footer-3") ?? { title: "Popular", links: categories.slice(0, 6).map((c) => ({ label: c.name, href: `/products?category=${c.slug}` })) },
   ];
   return (
     <footer id="footer" className="mt-12 border-t border-line pb-16 lg:mt-16 md:pb-0">
@@ -45,8 +54,12 @@ export function Footer() {
             <h3 className="mb-4 text-lg font-bold text-heading">{col.title}</h3>
             <ul className="space-y-2.5">
               {col.links.map((l) => (
-                <li key={l.label}>
-                  <Link href={l.href} className="text-sm text-heading/80 transition hover:pl-1 hover:text-brand">
+                <li key={`${l.label}-${l.href}`}>
+                  <Link
+                    href={l.href}
+                    className="text-sm text-heading/80 transition hover:pl-1 hover:text-brand"
+                    {...(l.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  >
                     {l.label}
                   </Link>
                 </li>
@@ -111,12 +124,13 @@ export function ChatButton() {
 
 export function MobileBottomNav() {
   const { cartCount, wishlist } = useCart();
+  const { customer } = useStore();
   const items = [
     { label: "Home", icon: House, href: "/" },
     { label: "Categories", icon: LayoutGrid, href: "/products" },
     { label: "Cart", icon: ShoppingCart, href: "/cart", count: cartCount },
     { label: "Wishlist", icon: Heart, href: "#", count: wishlist.length },
-    { label: "Account", icon: User, href: "#" },
+    { label: "Account", icon: User, href: customer ? "/account" : "/login" },
   ];
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden">

@@ -33,7 +33,7 @@ const updateSchema = z.object({
 });
 
 export async function updateOrder(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  await requireAdmin("orders");
   const parsed = updateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Invalid update.", errors: firstErrors(parsed.error) };
   const { id, ...changes } = parsed.data;
@@ -54,7 +54,7 @@ export async function updateOrder(_prev: FormState, formData: FormData): Promise
 }
 
 export async function deleteOrder(id: number) {
-  await requireAdmin();
+  await requireAdmin("orders");
   await db.transaction(async (tx) => {
     const [order] = await tx.select({ status: schema.orders.status }).from(schema.orders).where(eq(schema.orders.id, id)).limit(1);
     if (!order) return;

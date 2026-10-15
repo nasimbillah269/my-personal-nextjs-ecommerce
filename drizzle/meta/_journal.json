@@ -22,6 +22,48 @@
       "when": 1791723878866,
       "tag": "0002_sliders",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1792054437224,
+      "tag": "0003_blog",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1792057403463,
+      "tag": "0004_pages",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1792058818458,
+      "tag": "0005_menus",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1792059545938,
+      "tag": "0006_menu_list",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1792060659861,
+      "tag": "0007_customers",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1792064435393,
+      "tag": "0008_users_roles",
+      "breakpoints": true
     }
   ]
 }

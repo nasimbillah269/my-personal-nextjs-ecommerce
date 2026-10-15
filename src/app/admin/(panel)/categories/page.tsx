@@ -6,7 +6,7 @@ import { requireAdmin } from "@/server/auth";
 export const metadata = { title: "Categories" };
 
 export default async function CategoriesPage() {
-  await requireAdmin();
+  await requireAdmin("catalog");
   const categories = await listCategoriesWithCounts();
   return (
     <>

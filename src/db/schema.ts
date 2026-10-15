@@ -2,23 +2,78 @@ import {
   boolean,
   datetime,
   index,
+  customType,
   int,
   mysqlEnum,
   mysqlTable,
+  primaryKey,
   text,
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
 
-import { COUPON_TYPES, DELIVERY_ZONES, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES } from "../lib/constants";
+import {
+  COMMENT_STATUSES,
+  COUPON_TYPES,
+  DELIVERY_ZONES,
+  MENU_ITEM_TYPES,
+  MENU_LOCATIONS,
+  ORDER_STATUSES,
+  PAGE_TEMPLATES,
+  PAYMENT_METHODS,
+  PAYMENT_STATUSES,
+  POST_STATUSES,
+  SUBSCRIBER_STATUSES,
+} from "../lib/constants";
 
-export { COUPON_TYPES, DELIVERY_ZONES, ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES };
+export {
+  COMMENT_STATUSES,
+  COUPON_TYPES,
+  DELIVERY_ZONES,
+  MENU_ITEM_TYPES,
+  MENU_LOCATIONS,
+  ORDER_STATUSES,
+  PAGE_TEMPLATES,
+  PAYMENT_METHODS,
+  PAYMENT_STATUSES,
+  POST_STATUSES,
+  SUBSCRIBER_STATUSES,
+};
+
+/**
+ * A JSON array of strings. MariaDB returns JSON columns as text and Drizzle's json() doesn't parse
+ * on read, so this column parses strings itself (and still accepts already-parsed values from MySQL).
+ */
+const stringArray = customType<{ data: string[]; driverData: string | string[] }>({
+  dataType: () => "json",
+  toDriver: (value) => JSON.stringify(value),
+  fromDriver: (value) => {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  },
+});
+
+/** Admin roles. `permissions` holds ADMIN_PERMISSIONS keys, or ["*"] for everything (the built-in Super Admin). */
+export const roles = mysqlTable("roles", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 80 }).notNull().unique(),
+  description: varchar("description", { length: 255 }).notNull().default(""),
+  permissions: stringArray("permissions").notNull(),
+  /** System roles can't be edited or deleted. */
+  isSystem: boolean("is_system").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 export const admins = mysqlTable("admins", {
   id: int("id").primaryKey().autoincrement(),
   name: varchar("name", { length: 120 }).notNull(),
   email: varchar("email", { length: 191 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 100 }).notNull(),
+  /** No role = no access beyond the dashboard. */
+  roleId: int("role_id").references(() => roles.id, { onDelete: "set null" }),
+  /** Deactivated admins can't log in and lose their session immediately. */
+  isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: datetime("last_login_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -93,6 +148,26 @@ export const coupons = mysqlTable("coupons", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+/** Shoppers with an account. Guests can still check out without one. */
+export const customers = mysqlTable("customers", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 120 }).notNull(),
+  /** Normalised 01XXXXXXXXX; the main login id. */
+  phone: varchar("phone", { length: 20 }).notNull().unique(),
+  /** Optional; also accepted at login. Lower-cased. */
+  email: varchar("email", { length: 191 }).unique(),
+  passwordHash: varchar("password_hash", { length: 100 }).notNull(),
+  /** Blocked customers can't log in. */
+  isActive: boolean("is_active").notNull().default(true),
+  // Saved delivery address, pre-filled at checkout.
+  division: varchar("division", { length: 40 }).notNull().default(""),
+  area: varchar("area", { length: 120 }).notNull().default(""),
+  address: varchar("address", { length: 500 }).notNull().default(""),
+  lastLoginAt: datetime("last_login_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
 export const orders = mysqlTable(
   "orders",
   {
@@ -116,6 +191,8 @@ export const orders = mysqlTable(
     shipping: int("shipping").notNull().default(0),
     total: int("total").notNull(),
     couponCode: varchar("coupon_code", { length: 40 }),
+    /** Set when the order was placed while signed in. */
+    customerId: int("customer_id").references(() => customers.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
   },
@@ -123,6 +200,7 @@ export const orders = mysqlTable(
     index("orders_status_idx").on(t.status),
     index("orders_phone_idx").on(t.phone),
     index("orders_created_idx").on(t.createdAt),
+    index("orders_customer_idx").on(t.customerId),
   ],
 );
 
@@ -162,3 +240,154 @@ export const sliders = mysqlTable("sliders", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/* ---------- Blog ---------- */
+
+export const postCategories = mysqlTable("post_categories", {
+  id: int("id").primaryKey().autoincrement(),
+  slug: varchar("slug", { length: 120 }).notNull().unique(),
+  name: varchar("name", { length: 120 }).notNull(),
+  description: varchar("description", { length: 500 }).notNull().default(""),
+  sortOrder: int("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const postTags = mysqlTable("post_tags", {
+  id: int("id").primaryKey().autoincrement(),
+  slug: varchar("slug", { length: 80 }).notNull().unique(),
+  name: varchar("name", { length: 80 }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const posts = mysqlTable(
+  "posts",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    slug: varchar("slug", { length: 160 }).notNull().unique(),
+    title: varchar("title", { length: 255 }).notNull(),
+    excerpt: varchar("excerpt", { length: 500 }).notNull().default(""),
+    /** Lightweight markup: "## heading", "### subheading", "- bullet", "> quote", **bold**, [link](url). See src/lib/post-content.ts */
+    content: text("content").notNull(),
+    coverImage: varchar("cover_image", { length: 255 }),
+    categoryId: int("category_id").references(() => postCategories.id, { onDelete: "set null" }),
+    authorId: int("author_id").references(() => admins.id, { onDelete: "set null" }),
+    status: mysqlEnum("status", POST_STATUSES).notNull().default("draft"),
+    allowComments: boolean("allow_comments").notNull().default(true),
+    /** Set the first time the post is published; a future date schedules it. */
+    publishedAt: datetime("published_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+  },
+  (t) => [index("posts_status_idx").on(t.status, t.publishedAt), index("posts_category_idx").on(t.categoryId)],
+);
+
+export const postTagLinks = mysqlTable(
+  "post_tag_links",
+  {
+    postId: int("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    tagId: int("tag_id")
+      .notNull()
+      .references(() => postTags.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.tagId] }), index("post_tag_links_tag_idx").on(t.tagId)],
+);
+
+export const postComments = mysqlTable(
+  "post_comments",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    postId: int("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    /** Set on admin replies; the admin's name is copied into authorName. */
+    adminId: int("admin_id").references(() => admins.id, { onDelete: "set null" }),
+    parentId: int("parent_id"),
+    authorName: varchar("author_name", { length: 120 }).notNull(),
+    authorEmail: varchar("author_email", { length: 191 }).notNull().default(""),
+    content: text("content").notNull(),
+    status: mysqlEnum("status", COMMENT_STATUSES).notNull().default("pending"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("post_comments_post_idx").on(t.postId, t.status), index("post_comments_status_idx").on(t.status)],
+);
+
+/* ---------- Static pages (About, Privacy Policy, …) ---------- */
+
+export const pages = mysqlTable(
+  "pages",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    /** Served at /{slug}; see RESERVED_PAGE_SLUGS for paths it can't take. */
+    slug: varchar("slug", { length: 160 }).notNull().unique(),
+    title: varchar("title", { length: 255 }).notNull(),
+    shortDescription: varchar("short_description", { length: 500 }).notNull().default(""),
+    /** Same lightweight markup as blog posts, see src/lib/post-content.ts */
+    content: text("content").notNull(),
+    image: varchar("image", { length: 255 }),
+    banner: varchar("banner", { length: 255 }),
+    template: mysqlEnum("template", PAGE_TEMPLATES).notNull().default("default"),
+    isActive: boolean("is_active").notNull().default(true),
+    /** Featured pages are linked in the store footer. */
+    isFeatured: boolean("is_featured").notNull().default(false),
+    publishedAt: datetime("published_at"),
+    metaTitle: varchar("meta_title", { length: 255 }).notNull().default(""),
+    metaDescription: varchar("meta_description", { length: 500 }).notNull().default(""),
+    metaKeywords: varchar("meta_keywords", { length: 500 }).notNull().default(""),
+    sortOrder: int("sort_order").notNull().default(0),
+    authorId: int("author_id").references(() => admins.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+  },
+  (t) => [index("pages_active_idx").on(t.isActive, t.publishedAt)],
+);
+
+/* ---------- Navigation menus ---------- */
+
+export const menus = mysqlTable("menus", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 120 }).notNull(),
+  /** Where the store renders it; at most one active menu per location (enforced on save). */
+  location: mysqlEnum("location", MENU_LOCATIONS),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: int("created_by").references(() => admins.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
+export const menuItems = mysqlTable(
+  "menu_items",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    menuId: int("menu_id")
+      .notNull()
+      .references(() => menus.id, { onDelete: "cascade" }),
+    /** One level of nesting (dropdowns). Items are rewritten on every save, so no FK is needed. */
+    parentId: int("parent_id"),
+    type: mysqlEnum("type", MENU_ITEM_TYPES).notNull(),
+    /** Id of the linked page/category/post; its URL is resolved when rendering, so slug changes follow. */
+    refId: int("ref_id"),
+    label: varchar("label", { length: 120 }).notNull(),
+    url: varchar("url", { length: 500 }).notNull().default(""),
+    openInNewTab: boolean("open_in_new_tab").notNull().default(false),
+    sortOrder: int("sort_order").notNull().default(0),
+  },
+  (t) => [index("menu_items_menu_idx").on(t.menuId, t.sortOrder)],
+);
+
+/** Newsletter sign-ups from the store. */
+export const subscribers = mysqlTable(
+  "subscribers",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    email: varchar("email", { length: 191 }).notNull().unique(),
+    name: varchar("name", { length: 120 }).notNull().default(""),
+    status: mysqlEnum("status", SUBSCRIBER_STATUSES).notNull().default("subscribed"),
+    /** Where they signed up, e.g. "home" or "admin". */
+    source: varchar("source", { length: 40 }).notNull().default("website"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+  },
+  (t) => [index("subscribers_status_idx").on(t.status)],
+);
