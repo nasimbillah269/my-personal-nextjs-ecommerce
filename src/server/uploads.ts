@@ -20,6 +20,12 @@ export const FAVICON_TYPES: Record<string, string> = {
   "image/vnd.microsoft.icon": ".ico",
 };
 
+/** Gallery photos may also be animated GIFs. */
+export const GALLERY_IMAGE_TYPES: Record<string, string> = {
+  ...IMAGE_TYPES,
+  "image/gif": ".gif",
+};
+
 export const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
 
 export function validateImage(
@@ -33,10 +39,10 @@ export function validateImage(
 }
 
 /** Saves the file and returns its public URL, e.g. /media/products/abc.webp */
-export async function saveImage(file: File, folder: "products" | "branding" | "sliders" | "posts" | "pages"): Promise<string> {
+export async function saveImage(file: File, folder: "products" | "branding" | "sliders" | "posts" | "pages" | "galleries" | "clients" | "brands"): Promise<string> {
   const dir = path.join(UPLOAD_ROOT, folder);
   await mkdir(dir, { recursive: true });
-  const name = `${randomUUID()}${FAVICON_TYPES[file.type]}`;
+  const name = `${randomUUID()}${FAVICON_TYPES[file.type] ?? GALLERY_IMAGE_TYPES[file.type]}`;
   await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
   return `/media/${folder}/${name}`;
 }

@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, like, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { cache } from "react";
 import { db, schema } from "@/db";
+import { outer } from "@/db/sql";
 
 const { posts, postCategories, postTags, postTagLinks, postComments, admins } = schema;
 
@@ -42,7 +43,7 @@ export async function listPublishedPosts(f: BlogFilters) {
   if (f.category) conds.push(eq(postCategories.slug, f.category));
   if (f.tag) {
     conds.push(
-      sql`EXISTS (SELECT 1 FROM ${postTagLinks} INNER JOIN ${postTags} ON ${postTags.id} = ${postTagLinks.tagId} WHERE ${postTagLinks.postId} = ${posts.id} AND ${postTags.slug} = ${f.tag})`,
+      sql`EXISTS (SELECT 1 FROM ${postTagLinks} INNER JOIN ${postTags} ON ${postTags.id} = ${postTagLinks.tagId} WHERE ${postTagLinks.postId} = ${outer(posts.id)} AND ${postTags.slug} = ${f.tag})`,
     );
   }
   const where = and(...conds);

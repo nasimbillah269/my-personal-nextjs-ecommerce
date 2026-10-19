@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { getProductForEdit } from "@/server/admin/queries";
+import { getProductForEdit, listBrandNames } from "@/server/admin/queries";
 import { requireAdmin } from "@/server/auth";
 import { getCategories } from "@/server/queries";
 
@@ -9,13 +9,14 @@ export const metadata = { title: "Edit product" };
 export default async function EditProductPage({ params }: PageProps<"/admin/products/[id]">) {
   await requireAdmin("products");
   const { id } = await params;
-  const [data, categories] = await Promise.all([getProductForEdit(Number(id)), getCategories()]);
+  const [data, categories, brands] = await Promise.all([getProductForEdit(Number(id)), getCategories(), listBrandNames()]);
   if (!data) notFound();
   const { product: p, variants } = data;
 
   return (
     <ProductForm
       categories={categories}
+      brands={brands}
       initial={{
         id: p.id,
         name: p.name,

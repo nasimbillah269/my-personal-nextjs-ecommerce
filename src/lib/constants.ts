@@ -39,6 +39,17 @@ export const MENU_LOCATION_HINTS: Record<MenuLocation, string> = {
 export const MENU_ITEM_TYPES = ["custom", "page", "product_category", "post_category", "post"] as const;
 export type MenuItemType = (typeof MENU_ITEM_TYPES)[number];
 
+/** Where a gallery is shown in the store. */
+export const GALLERY_LOCATIONS = ["home", "about", "gallery-page", "footer", "sidebar"] as const;
+export type GalleryLocation = (typeof GALLERY_LOCATIONS)[number];
+export const GALLERY_LOCATION_LABELS: Record<GalleryLocation, string> = {
+  home: "Home Page",
+  about: "About Page",
+  "gallery-page": "Gallery Page",
+  footer: "Footer",
+  sidebar: "Sidebar",
+};
+
 export const SUBSCRIBER_STATUSES = ["subscribed", "unsubscribed"] as const;
 
 /** What a role can open in the admin panel. The dashboard and your own profile are always available. */
@@ -50,6 +61,9 @@ export const ADMIN_PERMISSIONS = [
   { key: "pages", label: "Pages", hint: "About, Privacy Policy and other pages" },
   { key: "menus", label: "Menus", hint: "Header and footer menus" },
   { key: "sliders", label: "Sliders", hint: "Home page banners" },
+  { key: "galleries", label: "Galleries", hint: "Image galleries and their photos" },
+  { key: "clients", label: "Clients", hint: "Client logos shown in the store" },
+  { key: "brands", label: "Brands", hint: "Product brands and their logos" },
   { key: "customers", label: "Customers", hint: "Customer accounts" },
   { key: "subscribers", label: "Subscribers", hint: "Newsletter list and export" },
   { key: "admins", label: "Admins & roles", hint: "Manage admin users and their roles" },

@@ -1,4 +1,5 @@
 import { ProductForm } from "@/components/admin/ProductForm";
+import { listBrandNames } from "@/server/admin/queries";
 import { requireAdmin } from "@/server/auth";
 import { getCategories, getSettings } from "@/server/queries";
 
@@ -6,11 +7,12 @@ export const metadata = { title: "Add product" };
 
 export default async function NewProductPage() {
   await requireAdmin("products");
-  const [categories, settings] = await Promise.all([getCategories(), getSettings()]);
+  const [categories, settings, brands] = await Promise.all([getCategories(), getSettings(), listBrandNames()]);
 
   return (
     <ProductForm
       categories={categories}
+      brands={brands}
       initial={{
         name: "",
         slug: "",

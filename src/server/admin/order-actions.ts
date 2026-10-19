@@ -30,6 +30,7 @@ const updateSchema = z.object({
   status: z.enum(ORDER_STATUSES),
   paymentStatus: z.enum(PAYMENT_STATUSES),
   adminNote: z.string().trim().max(1000),
+  isPreOrder: z.literal("on").optional().transform((v) => v === "on"),
 });
 
 export async function updateOrder(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -48,8 +49,7 @@ export async function updateOrder(_prev: FormState, formData: FormData): Promise
     await tx.update(schema.orders).set(changes).where(eq(schema.orders.id, id));
   });
 
-  revalidatePath("/admin/orders");
-  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/admin/orders", "layout");
   return { ok: true, message: "Order updated." };
 }
 
@@ -62,6 +62,6 @@ export async function deleteOrder(id: number) {
     if (order.status !== "cancelled" && order.status !== "delivered") await adjustStock(tx, id, 1);
     await tx.delete(schema.orders).where(eq(schema.orders.id, id));
   });
-  revalidatePath("/admin/orders");
+  revalidatePath("/admin/orders", "layout");
   redirect("/admin/orders");
 }

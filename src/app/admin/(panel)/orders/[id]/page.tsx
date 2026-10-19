@@ -46,6 +46,9 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
             <h1 className="text-2xl font-bold text-heading">{o.orderNo}</h1>
             <StatusBadge status={o.status} />
             <PaymentStatusBadge status={o.paymentStatus} />
+            {o.isPreOrder && (
+              <span className="rounded-full bg-fuchsia-100 px-2.5 py-1 text-xs font-bold text-fuchsia-700">Pre-order</span>
+            )}
           </div>
           <p className="mt-1 text-sm text-body">Placed on {formatDateTime(o.createdAt)}</p>
         </div>
@@ -158,7 +161,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/admin/orde
 
         <div className="min-w-0 space-y-6">
           <Card title="Update order" className="print:hidden">
-            <OrderUpdateForm id={o.id} status={o.status} paymentStatus={o.paymentStatus} adminNote={o.adminNote} />
+            <OrderUpdateForm id={o.id} status={o.status} paymentStatus={o.paymentStatus} adminNote={o.adminNote} isPreOrder={o.isPreOrder} />
           </Card>
 
           <Card title="Customer">

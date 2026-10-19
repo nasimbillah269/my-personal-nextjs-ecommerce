@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, inArray, like, lt, lte, ne, or, sql, sum, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { outer } from "@/db/sql";
 import { COMMENT_STATUSES, ORDER_STATUSES } from "@/lib/constants";
 
 const { orders, orderItems, products, productVariants, categories, coupons, sliders } = schema;
@@ -107,7 +108,33 @@ export async function getPendingOrderCount() {
 
 /* ---------- Orders ---------- */
 
-export type OrderFilters = { q?: string; status?: string; payment?: string; page: number };
+/** Preset order lists shown under "Order Management" in the sidebar; each maps to a fixed filter. */
+export const ORDER_VIEWS = {
+  pending: { title: "Pending Orders", description: "New orders waiting to be confirmed." },
+  confirmed: { title: "Confirmed Orders", description: "Orders confirmed and being prepared." },
+  shipped: { title: "Shipped Orders", description: "Orders handed to the courier." },
+  delivered: { title: "Delivered Orders", description: "Orders that reached the customer." },
+  cancelled: { title: "Cancelled Orders", description: "Orders that were cancelled. Their items went back to stock." },
+  unpaid: { title: "Unpaid Orders", description: "Active orders with no payment received yet." },
+  "pending-payment": { title: "Pending Payment", description: "Orders whose payment is waiting for verification." },
+  "pre-order": { title: "Pre Orders", description: "Orders flagged as pre-orders." },
+} as const;
+export type OrderView = keyof typeof ORDER_VIEWS;
+
+function viewCondition(view: OrderView): SQL {
+  switch (view) {
+    case "unpaid":
+      return and(eq(orders.paymentStatus, "unpaid"), notCancelled)!;
+    case "pending-payment":
+      return eq(orders.paymentStatus, "pending");
+    case "pre-order":
+      return eq(orders.isPreOrder, true);
+    default:
+      return eq(orders.status, view);
+  }
+}
+
+export type OrderFilters = { q?: string; status?: string; payment?: string; view?: OrderView; page: number };
 
 export async function listOrders(f: OrderFilters) {
   const conds: SQL[] = [];
@@ -118,6 +145,7 @@ export async function listOrders(f: OrderFilters) {
   if (f.payment && ["cod", "bkash", "nagad", "card"].includes(f.payment)) {
     conds.push(eq(orders.paymentMethod, f.payment as (typeof orders.paymentMethod.enumValues)[number]));
   }
+  if (f.view) conds.push(viewCondition(f.view));
   const base = conds.length ? and(...conds) : undefined;
   const statusCond =
     f.status && (ORDER_STATUSES as readonly string[]).includes(f.status)
@@ -137,8 +165,9 @@ export async function listOrders(f: OrderFilters) {
         status: orders.status,
         paymentMethod: orders.paymentMethod,
         paymentStatus: orders.paymentStatus,
+        isPreOrder: orders.isPreOrder,
         createdAt: orders.createdAt,
-        items: sql<number>`(SELECT COALESCE(SUM(${orderItems.qty}), 0) FROM ${orderItems} WHERE ${orderItems.orderId} = ${orders.id})`.mapWith(Number),
+        items: sql<number>`(SELECT COALESCE(SUM(${orderItems.qty}), 0) FROM ${orderItems} WHERE ${orderItems.orderId} = ${outer(orders.id)})`.mapWith(Number),
       })
       .from(orders)
       .where(where)
@@ -246,7 +275,7 @@ export async function listCategoriesWithCounts() {
       name: categories.name,
       icon: categories.icon,
       sortOrder: categories.sortOrder,
-      productCount: sql<number>`(SELECT COUNT(*) FROM ${products} WHERE ${products.categoryId} = ${categories.id})`.mapWith(Number),
+      productCount: sql<number>`(SELECT COUNT(*) FROM ${products} WHERE ${products.categoryId} = ${outer(categories.id)})`.mapWith(Number),
     })
     .from(categories)
     .orderBy(asc(categories.sortOrder), asc(categories.name));
@@ -261,6 +290,40 @@ export async function listSliders() {
     .select({ id: sliders.id, title: sliders.title, image: sliders.image, link: sliders.link, sortOrder: sliders.sortOrder, isActive: sliders.isActive })
     .from(sliders)
     .orderBy(asc(sliders.sortOrder), asc(sliders.id));
+}
+
+export async function listClients() {
+  const { clients } = schema;
+  return db
+    .select({ id: clients.id, name: clients.name, logo: clients.logo, website: clients.website, sortOrder: clients.sortOrder, isActive: clients.isActive })
+    .from(clients)
+    .orderBy(asc(clients.sortOrder), asc(clients.name));
+}
+
+/** Brands with how many products carry each brand name. */
+export async function listBrands() {
+  const { brands } = schema;
+  return db
+    .select({
+      id: brands.id,
+      name: brands.name,
+      slug: brands.slug,
+      logo: brands.logo,
+      website: brands.website,
+      description: brands.description,
+      sortOrder: brands.sortOrder,
+      isActive: brands.isActive,
+      productCount: sql<number>`(SELECT COUNT(*) FROM ${products} WHERE ${products.brand} = ${outer(brands.name)})`.mapWith(Number),
+    })
+    .from(brands)
+    .orderBy(asc(brands.sortOrder), asc(brands.name));
+}
+
+/** Active brand names, suggested in the product form's Brand field. */
+export async function listBrandNames() {
+  const { brands } = schema;
+  const rows = await db.select({ name: brands.name }).from(brands).where(eq(brands.isActive, true)).orderBy(asc(brands.sortOrder), asc(brands.name));
+  return rows.map((r) => r.name);
 }
 
 /* ---------- Customers (derived from orders, grouped by phone) ---------- */
@@ -304,7 +367,7 @@ export async function listPosts(f: PostFilters) {
   else if (f.category) conds.push(eq(postCategories.slug, f.category));
   if (f.tag) {
     conds.push(
-      sql`EXISTS (SELECT 1 FROM ${postTagLinks} INNER JOIN ${postTags} ON ${postTags.id} = ${postTagLinks.tagId} WHERE ${postTagLinks.postId} = ${posts.id} AND ${postTags.slug} = ${f.tag})`,
+      sql`EXISTS (SELECT 1 FROM ${postTagLinks} INNER JOIN ${postTags} ON ${postTags.id} = ${postTagLinks.tagId} WHERE ${postTagLinks.postId} = ${outer(posts.id)} AND ${postTags.slug} = ${f.tag})`,
     );
   }
   const base = conds.length ? and(...conds) : undefined;
@@ -330,8 +393,8 @@ export async function listPosts(f: PostFilters) {
         updatedAt: posts.updatedAt,
         categoryName: postCategories.name,
         authorName: admins.name,
-        comments: sql<number>`(SELECT COUNT(*) FROM ${postComments} WHERE ${postComments.postId} = ${posts.id} AND ${postComments.status} = 'approved')`.mapWith(Number),
-        pendingComments: sql<number>`(SELECT COUNT(*) FROM ${postComments} WHERE ${postComments.postId} = ${posts.id} AND ${postComments.status} = 'pending')`.mapWith(Number),
+        comments: sql<number>`(SELECT COUNT(*) FROM ${postComments} WHERE ${postComments.postId} = ${outer(posts.id)} AND ${postComments.status} = 'approved')`.mapWith(Number),
+        pendingComments: sql<number>`(SELECT COUNT(*) FROM ${postComments} WHERE ${postComments.postId} = ${outer(posts.id)} AND ${postComments.status} = 'pending')`.mapWith(Number),
       })
       .from(posts)
       .leftJoin(postCategories, eq(posts.categoryId, postCategories.id))
@@ -390,7 +453,7 @@ export async function listPostCategories() {
       name: postCategories.name,
       description: postCategories.description,
       sortOrder: postCategories.sortOrder,
-      postCount: sql<number>`(SELECT COUNT(*) FROM ${posts} WHERE ${posts.categoryId} = ${postCategories.id})`.mapWith(Number),
+      postCount: sql<number>`(SELECT COUNT(*) FROM ${posts} WHERE ${posts.categoryId} = ${outer(postCategories.id)})`.mapWith(Number),
     })
     .from(postCategories)
     .orderBy(asc(postCategories.sortOrder), asc(postCategories.name));
@@ -402,7 +465,7 @@ export async function listTags() {
       id: postTags.id,
       slug: postTags.slug,
       name: postTags.name,
-      postCount: sql<number>`(SELECT COUNT(*) FROM ${postTagLinks} WHERE ${postTagLinks.tagId} = ${postTags.id})`.mapWith(Number),
+      postCount: sql<number>`(SELECT COUNT(*) FROM ${postTagLinks} WHERE ${postTagLinks.tagId} = ${outer(postTags.id)})`.mapWith(Number),
     })
     .from(postTags)
     .orderBy(asc(postTags.name));
@@ -529,6 +592,48 @@ export async function getPageForEdit(id: number) {
   return page ?? null;
 }
 
+/* ---------- Galleries ---------- */
+
+/** Galleries list: one row per gallery with its photo count and creator. */
+export async function listGalleries(f: { q?: string; page: number }) {
+  const { galleries, galleryImages } = schema;
+  const where = f.q ? like(galleries.name, `%${f.q}%`) : undefined;
+  const [rows, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: galleries.id,
+        name: galleries.name,
+        location: galleries.location,
+        featuredImage: galleries.featuredImage,
+        isActive: galleries.isActive,
+        creatorName: admins.name,
+        imageCount: sql<number>`(SELECT COUNT(*) FROM ${galleryImages} WHERE ${galleryImages.galleryId} = ${outer(galleries.id)})`.mapWith(Number),
+      })
+      .from(galleries)
+      .leftJoin(admins, eq(galleries.createdBy, admins.id))
+      .where(where)
+      .orderBy(desc(galleries.createdAt), desc(galleries.id))
+      .limit(PAGE_SIZE)
+      .offset((f.page - 1) * PAGE_SIZE),
+    db.select({ total: count() }).from(galleries).where(where),
+  ]);
+  return { rows, total };
+}
+
+export async function getGalleryForEdit(id: number) {
+  if (!Number.isInteger(id) || id < 1) return null;
+  const { galleries, galleryImages } = schema;
+  const [[gallery], images] = await Promise.all([
+    db.select().from(galleries).where(eq(galleries.id, id)).limit(1),
+    db
+      .select({ id: galleryImages.id, image: galleryImages.image, caption: galleryImages.caption })
+      .from(galleryImages)
+      .where(eq(galleryImages.galleryId, id))
+      .orderBy(asc(galleryImages.sortOrder), asc(galleryImages.id)),
+  ]);
+  return gallery ? { ...gallery, images } : null;
+}
+
 /* ---------- Menus ---------- */
 
 /** Menus list: one row per menu with its item count and creator. */
@@ -542,7 +647,7 @@ export async function listMenus() {
       isActive: menus.isActive,
       creatorName: admins.name,
       updatedAt: menus.updatedAt,
-      items: sql<number>`(SELECT COUNT(*) FROM ${menuItems} WHERE ${menuItems.menuId} = ${menus.id})`.mapWith(Number),
+      items: sql<number>`(SELECT COUNT(*) FROM ${menuItems} WHERE ${menuItems.menuId} = ${outer(menus.id)})`.mapWith(Number),
     })
     .from(menus)
     .leftJoin(admins, eq(menus.createdBy, admins.id))
@@ -617,7 +722,7 @@ export async function listRoles() {
       description: roles.description,
       permissions: roles.permissions,
       isSystem: roles.isSystem,
-      adminCount: sql<number>`(SELECT COUNT(*) FROM ${admins} WHERE ${admins.roleId} = ${roles.id})`.mapWith(Number),
+      adminCount: sql<number>`(SELECT COUNT(*) FROM ${admins} WHERE ${admins.roleId} = ${outer(roles.id)})`.mapWith(Number),
     })
     .from(roles)
     .orderBy(desc(roles.isSystem), asc(roles.name));
@@ -643,8 +748,8 @@ export async function listRegisteredCustomers(f: { q?: string; status?: string; 
         isActive: customers.isActive,
         lastLoginAt: customers.lastLoginAt,
         createdAt: customers.createdAt,
-        orders: sql<number>`(SELECT COUNT(*) FROM ${orders} WHERE ${orders.customerId} = ${customers.id})`.mapWith(Number),
-        spent: sql<number>`(SELECT COALESCE(SUM(${orders.total}), 0) FROM ${orders} WHERE ${orders.customerId} = ${customers.id} AND ${orders.status} <> 'cancelled')`.mapWith(Number),
+        orders: sql<number>`(SELECT COUNT(*) FROM ${orders} WHERE ${orders.customerId} = ${outer(customers.id)})`.mapWith(Number),
+        spent: sql<number>`(SELECT COALESCE(SUM(${orders.total}), 0) FROM ${orders} WHERE ${orders.customerId} = ${outer(customers.id)} AND ${orders.status} <> 'cancelled')`.mapWith(Number),
       })
       .from(customers)
       .where(where)

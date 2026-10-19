@@ -64,6 +64,27 @@
       "when": 1792064435393,
       "tag": "0008_users_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1792402202260,
+      "tag": "0009_galleries",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1792402740651,
+      "tag": "0010_clients_brands",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1792408312189,
+      "tag": "0011_order_pre_order",
+      "breakpoints": true
     }
   ]
 }

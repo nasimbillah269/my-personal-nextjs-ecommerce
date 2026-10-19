@@ -55,6 +55,12 @@ const sections: NavSection[] = [
   {
     items: [
       {
+        href: "/admin",
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        exact: true,
+      },
+      {
         label: "Posts",
         icon: FileText,
         badge: "comments",
@@ -74,12 +80,6 @@ const sections: NavSection[] = [
           { href: "/admin/pages/new", label: "New Page", perm: "pages" },
         ],
       },
-      {
-        href: "/admin",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        exact: true,
-      },
     ],
   },
   {
@@ -89,7 +89,7 @@ const sections: NavSection[] = [
         label: "Ecommerce Setting",
         icon: SlidersHorizontal,
         children: [
-          { href: "/admin/categories", label: "Categories", perm: "catalog" },
+          { href: "/admin/settings/general", label: "General Setting", perm: "settings" },
           { href: "/admin/coupons", label: "Coupons", perm: "catalog" },
         ],
       },
@@ -99,6 +99,7 @@ const sections: NavSection[] = [
         children: [
           { href: "/admin/products", label: "All Products", perm: "products" },
           { href: "/admin/products/new", label: "Add Product", perm: "products" },
+          { href: "/admin/categories", label: "Categories", perm: "catalog" },
         ],
       },
       {
@@ -106,7 +107,15 @@ const sections: NavSection[] = [
         icon: Network,
         badge: "orders",
         children: [
-          { href: "/admin/orders", label: "All Orders", badge: "orders", perm: "orders" },
+          { href: "/admin/orders", label: "Order List", perm: "orders" },
+          { href: "/admin/orders/pending", label: "Pending Order", perm: "orders" },
+          { href: "/admin/orders/confirmed", label: "Confirmed Orders", perm: "orders" },
+          { href: "/admin/orders/shipped", label: "Shipped Orders", perm: "orders" },
+          { href: "/admin/orders/delivered", label: "Delivered Orders", perm: "orders" },
+          { href: "/admin/orders/cancelled", label: "Cancelled Orders", perm: "orders" },
+          { href: "/admin/orders/unpaid", label: "Unpaid Orders", perm: "orders" },
+          { href: "/admin/orders/pending-payment", label: "Pending Payment", perm: "orders" },
+          { href: "/admin/orders/pre-order", label: "Pre Order", perm: "orders" },
         ],
       },
     ],
@@ -128,10 +137,10 @@ const sections: NavSection[] = [
   {
     title: "General Unit",
     items: [
-      { href: "/admin/clients", label: "Clients", icon: Contact },
-      { href: "/admin/brands", label: "Brands", icon: Castle },
+      { href: "/admin/clients", label: "Clients", icon: Contact, perm: "clients" },
+      { href: "/admin/brands", label: "Brands", icon: Castle, perm: "brands" },
       { href: "/admin/sliders", label: "Sliders", icon: Laptop, perm: "sliders" },
-      { href: "/admin/galleries", label: "Galleries", icon: Images },
+      { href: "/admin/galleries", label: "Galleries", icon: Images, perm: "galleries" },
       { href: "/admin/menus", label: "Menus Setting", icon: Menu, perm: "menus" },
       { href: "/admin/theme", label: "Theme Setting", icon: Palette },
     ],
@@ -414,7 +423,7 @@ export function AdminShell({
   return (
     <div className={`text-heading ${theme === "dark" ? "admin-dark" : ""}`}>
       <ToastProvider>
-        <div className="min-h-screen bg-soft bg-[radial-gradient(1200px_500px_at_100%_-10%,rgba(19,162,168,0.10),transparent_60%),radial-gradient(900px_400px_at_0%_0%,rgba(99,102,241,0.06),transparent_60%)] bg-fixed">
+        <div className="print-plain min-h-screen bg-soft bg-[radial-gradient(1200px_500px_at_100%_-10%,rgba(19,162,168,0.10),transparent_60%),radial-gradient(900px_400px_at_0%_0%,rgba(99,102,241,0.06),transparent_60%)] bg-fixed">
           {/* Desktop sidebar */}
           <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 bg-linear-to-b from-[#0f2537] via-[#132f45] to-[#0c3a44] shadow-xl shadow-slate-900/10 lg:block print:hidden">
             {sidebar}
@@ -446,7 +455,7 @@ export function AdminShell({
             </aside>
           </div>
 
-          <div className="lg:pl-72">
+          <div className="lg:pl-72 print:pl-0">
             <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/75 px-4 backdrop-blur-xl sm:px-6 lg:px-8 print:hidden">
               <button
                 type="button"
@@ -504,7 +513,7 @@ export function AdminShell({
                 </Link>
               </div>
             </header>
-            <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8 print:p-0">
               {children}
             </main>
           </div>

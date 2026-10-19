@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
+import type { SocialLink } from "@/lib/social";
 import type { Category, StoreSettings } from "@/lib/types";
 import type { StoreMenus } from "@/server/menus";
 
@@ -13,6 +14,8 @@ type StoreContextValue = {
   menus: StoreMenus;
   /** The signed-in shopper (just what the header and checkout need), or null for guests. */
   customer: { name: string; phone: string; email: string | null; division: string; area: string; address: string } | null;
+  /** Social profile links from Admin → Social Setting (only the ones that are set). */
+  socialLinks: SocialLink[];
 };
 
 const StoreContext = createContext<StoreContextValue | null>(null);

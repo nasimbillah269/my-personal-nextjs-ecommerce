@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { ImagePlus, KeyRound, Loader2, Palette, Save, Store, Trash2, Truck, UserRound, X } from "lucide-react";
+import { Banknote, ImagePlus, KeyRound, Loader2, Palette, Save, Store, Trash2, Truck, UserRound, X } from "lucide-react";
 import type { StoreSettings } from "@/lib/types";
 import type { FormState } from "@/server/admin/form-state";
-import { changePassword, saveBranding, saveProfile, saveSettings } from "@/server/admin/settings-actions";
+import { changePassword, saveBranding, saveProfile, saveSettings, saveShippingSettings } from "@/server/admin/settings-actions";
 import { Logo, LogoMark } from "../Logo";
 import { useFormAction } from "./controls";
 import { btnPrimary, btnSecondary, Card, Field, inputCls } from "./ui";
@@ -37,13 +37,8 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
         </div>
       </Card>
 
-      <Card title={<span className="flex items-center gap-2"><Truck className="size-5 text-brand" /> Delivery & payment</span>}>
+      <Card title={<span className="flex items-center gap-2"><Banknote className="size-5 text-brand" /> Payment</span>}>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Inside Dhaka fee (৳)" htmlFor="insideDhakaFee" error={e.insideDhakaFee}>{input("insideDhakaFee", { type: "number", min: 0 })}</Field>
-          <Field label="Outside Dhaka fee (৳)" htmlFor="outsideDhakaFee" error={e.outsideDhakaFee}>{input("outsideDhakaFee", { type: "number", min: 0 })}</Field>
-          <Field label="Free delivery from (৳)" htmlFor="freeShippingMin" hint="Set 0 to turn off free delivery." error={e.freeShippingMin}>
-            {input("freeShippingMin", { type: "number", min: 0 })}
-          </Field>
           <Field label="bKash / Nagad number" htmlFor="mobilePaymentNumber" hint="Customers send money to this number." error={e.mobilePaymentNumber}>
             {input("mobilePaymentNumber", { type: "tel" })}
           </Field>
@@ -53,6 +48,37 @@ export function StoreSettingsForm({ settings }: { settings: StoreSettings }) {
       <div className="flex justify-end">
         <SubmitButton pending={pending}>Save settings</SubmitButton>
       </div>
+    </form>
+  );
+}
+
+/* ---------- Shipping charges ---------- */
+
+export function ShippingSettingsForm({
+  settings,
+}: {
+  settings: Pick<StoreSettings, "insideDhakaFee" | "outsideDhakaFee" | "freeShippingMin">;
+}) {
+  const { state, onSubmit, pending } = useFormAction<FormState>(saveShippingSettings, null);
+  const e = state?.errors ?? {};
+  const input = (name: keyof typeof settings) => (
+    <input id={name} name={name} type="number" min={0} step={1} defaultValue={settings[name]} aria-invalid={!!e[name]} className={inputCls} />
+  );
+
+  return (
+    <form onSubmit={onSubmit}>
+      <Card title={<span className="flex items-center gap-2"><Truck className="size-5 text-brand" /> Shipping charge</span>}>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label="Inside Dhaka (৳)" htmlFor="insideDhakaFee" error={e.insideDhakaFee}>{input("insideDhakaFee")}</Field>
+          <Field label="Outside Dhaka (৳)" htmlFor="outsideDhakaFee" error={e.outsideDhakaFee}>{input("outsideDhakaFee")}</Field>
+          <Field label="Free delivery from (৳)" htmlFor="freeShippingMin" hint="Orders at or above this subtotal ship free. Set 0 to turn it off." error={e.freeShippingMin}>
+            {input("freeShippingMin")}
+          </Field>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <SubmitButton pending={pending}>Update</SubmitButton>
+        </div>
+      </Card>
     </form>
   );
 }

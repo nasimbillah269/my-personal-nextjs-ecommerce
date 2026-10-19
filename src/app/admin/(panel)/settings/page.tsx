@@ -14,7 +14,7 @@ export default async function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        description={canEditStore ? "Branding, store details, delivery charges and your admin account." : "Your admin account."}
+        description={canEditStore ? "Branding, store details, payment number and your admin account." : "Your admin account."}
       />
       <div className={`grid gap-6 ${canEditStore ? "xl:grid-cols-[minmax(0,1fr)_380px]" : "max-w-xl"}`}>
         {/* Store-wide settings need the "settings" permission; everyone can edit their own account. */}

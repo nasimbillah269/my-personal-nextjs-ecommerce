@@ -13,11 +13,13 @@ export function OrderUpdateForm({
   status,
   paymentStatus,
   adminNote,
+  isPreOrder,
 }: {
   id: number;
   status: string;
   paymentStatus: string;
   adminNote: string;
+  isPreOrder: boolean;
 }) {
   const { onSubmit, pending } = useFormAction<FormState>(updateOrder, null);
 
@@ -42,6 +44,10 @@ export function OrderUpdateForm({
           ))}
         </select>
       </Field>
+      <label className="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-heading">
+        <input type="checkbox" name="isPreOrder" defaultChecked={isPreOrder} className="size-4 cursor-pointer accent-brand" />
+        Pre-order <span className="font-normal text-body">(stock not yet available)</span>
+      </label>
       <Field label="Internal note" htmlFor="adminNote" hint="Only visible to admins.">
         <textarea
           id="adminNote"

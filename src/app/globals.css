@@ -182,7 +182,9 @@ body {
 }
 
 /* Admin dark mode (toggled in AdminShell, persisted in the `admin-theme` cookie).
-   Admin components use theme tokens, so flipping the tokens here re-skins the whole panel. */
+   Admin components use theme tokens, so flipping the tokens here re-skins the whole panel.
+   Screen only: printed reports always use the light colours. */
+@media screen {
 .admin-dark {
   color-scheme: dark;
   --color-surface: #131f2e;
@@ -219,9 +221,35 @@ body {
   --color-red-500: #f87171;
   --color-red-600: #f87171;
 }
+}
 .admin-dark .skeleton {
   background-color: #1a2738;
 }
 .admin-dark .skeleton::after {
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+
+/* Printing admin reports: A4 pages, no app chrome or tinted backgrounds, tables that split cleanly. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body,
+  .print-plain {
+    background: #fff !important;
+  }
+  .print-plain * {
+    box-shadow: none !important;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

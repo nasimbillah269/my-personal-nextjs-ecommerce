@@ -16,6 +16,7 @@ import {
   COMMENT_STATUSES,
   COUPON_TYPES,
   DELIVERY_ZONES,
+  GALLERY_LOCATIONS,
   MENU_ITEM_TYPES,
   MENU_LOCATIONS,
   ORDER_STATUSES,
@@ -30,6 +31,7 @@ export {
   COMMENT_STATUSES,
   COUPON_TYPES,
   DELIVERY_ZONES,
+  GALLERY_LOCATIONS,
   MENU_ITEM_TYPES,
   MENU_LOCATIONS,
   ORDER_STATUSES,
@@ -191,6 +193,8 @@ export const orders = mysqlTable(
     shipping: int("shipping").notNull().default(0),
     total: int("total").notNull(),
     couponCode: varchar("coupon_code", { length: 40 }),
+    /** Flagged by an admin when the order is for stock that hasn't arrived yet. */
+    isPreOrder: boolean("is_pre_order").notNull().default(false),
     /** Set when the order was placed while signed in. */
     customerId: int("customer_id").references(() => customers.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -198,6 +202,7 @@ export const orders = mysqlTable(
   },
   (t) => [
     index("orders_status_idx").on(t.status),
+    index("orders_payment_status_idx").on(t.paymentStatus),
     index("orders_phone_idx").on(t.phone),
     index("orders_created_idx").on(t.createdAt),
     index("orders_customer_idx").on(t.customerId),
@@ -239,6 +244,61 @@ export const sliders = mysqlTable("sliders", {
   sortOrder: int("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ---------- Galleries ---------- */
+
+export const galleries = mysqlTable("galleries", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 160 }).notNull(),
+  location: mysqlEnum("location", GALLERY_LOCATIONS),
+  description: text("description"),
+  featuredImage: varchar("featured_image", { length: 255 }),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: int("created_by").references(() => admins.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
+export const galleryImages = mysqlTable(
+  "gallery_images",
+  {
+    id: int("id").primaryKey().autoincrement(),
+    galleryId: int("gallery_id")
+      .notNull()
+      .references(() => galleries.id, { onDelete: "cascade" }),
+    image: varchar("image", { length: 255 }).notNull(),
+    caption: varchar("caption", { length: 255 }).notNull().default(""),
+    sortOrder: int("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("gallery_images_gallery_idx").on(t.galleryId, t.sortOrder)],
+);
+
+/* ---------- Clients & brands ---------- */
+
+export const clients = mysqlTable("clients", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 160 }).notNull(),
+  logo: varchar("logo", { length: 255 }),
+  website: varchar("website", { length: 500 }),
+  sortOrder: int("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
+});
+
+export const brands = mysqlTable("brands", {
+  id: int("id").primaryKey().autoincrement(),
+  name: varchar("name", { length: 120 }).notNull().unique(),
+  slug: varchar("slug", { length: 140 }).notNull().unique(),
+  logo: varchar("logo", { length: 255 }),
+  website: varchar("website", { length: 500 }),
+  description: varchar("description", { length: 500 }).notNull().default(""),
+  sortOrder: int("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
 });
 
 /* ---------- Blog ---------- */

@@ -48,9 +48,12 @@ const slugify = (s: string) =>
 export function ProductForm({
   initial,
   categories,
+  brands = [],
 }: {
   initial: ProductFormValues;
   categories: { id: number; name: string }[];
+  /** Saved brand names, suggested in the Brand field (any text is still allowed). */
+  brands?: string[];
 }) {
   const router = useRouter();
   const { state, onSubmit, pending } = useFormAction<FormState>(saveProduct, null);
@@ -279,7 +282,12 @@ export function ProductForm({
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Brand" htmlFor="brand" error={errors.brand}>
-                  <input id="brand" name="brand" defaultValue={initial.brand} className={inputCls} />
+                  <input id="brand" name="brand" list="brand-options" defaultValue={initial.brand} className={inputCls} />
+                  <datalist id="brand-options">
+                    {brands.map((b) => (
+                      <option key={b} value={b} />
+                    ))}
+                  </datalist>
                 </Field>
                 <Field label="Origin" htmlFor="origin" error={errors.origin}>
                   <input id="origin" name="origin" defaultValue={initial.origin} className={inputCls} />

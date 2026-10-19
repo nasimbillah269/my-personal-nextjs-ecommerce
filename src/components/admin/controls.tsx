@@ -2,9 +2,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useActionState, useEffect, useRef, useState, useTransition } from "react";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, RefreshCw, Search } from "lucide-react";
 import type { FormState } from "@/server/admin/form-state";
-import { inputCls } from "./ui";
+import { btnSecondary, inputCls } from "./ui";
 import { useToast } from "./Toast";
 
 /** Search box + optional selects that write to the URL query string. */
@@ -135,6 +135,17 @@ export function useFormAction<S extends { message?: string; ok?: boolean } | nul
     startTransition(() => dispatch(formData));
   };
   return { state, onSubmit, pending };
+}
+
+/** Re-fetches the current page's server data. */
+export function RefreshButton() {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  return (
+    <button type="button" onClick={() => start(() => router.refresh())} disabled={pending} aria-label="Refresh" title="Refresh" className={`${btnSecondary} px-3`}>
+      <RefreshCw className={`size-4 ${pending ? "animate-spin" : ""}`} />
+    </button>
+  );
 }
 
 /** On/off switch backed by a real checkbox, so it submits with the form ("on" when checked). */

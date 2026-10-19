@@ -7,6 +7,7 @@ import { container } from "@/lib/ui";
 import { useCart } from "./CartProvider";
 import { Logo } from "./Logo";
 import { Reveal } from "./Reveal";
+import { SocialIcon } from "./SocialIcons";
 import { useStore } from "./StoreProvider";
 
 const toLink = (label: string) => ({ label, href: "#" });
@@ -20,7 +21,7 @@ const accountColumn = {
 };
 
 export function Footer() {
-  const { settings: contact, categories, footerPages, menus } = useStore();
+  const { settings: contact, categories, footerPages, menus, socialLinks } = useStore();
   // Footer menus from Admin → Menus replace the link columns; the menu name becomes the heading.
   const fromMenu = (location: "footer-1" | "footer-2" | "footer-3") => {
     const m = menus[location];
@@ -48,6 +49,24 @@ export function Footer() {
             <li className="flex gap-2"><Mail className="size-4 shrink-0 text-brand" /> {contact.email}</li>
             <li className="flex gap-2"><Clock className="size-4 shrink-0 text-brand" /> 10:00 – 18:00, Sat – Thu</li>
           </ul>
+          {socialLinks.length > 0 && (
+            <ul className="mt-5 flex flex-wrap gap-2" aria-label="Follow us">
+              {socialLinks.map((s) => (
+                <li key={s.network}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="grid size-9 place-items-center rounded-full border border-line text-heading transition hover:-translate-y-0.5 hover:border-brand hover:bg-brand hover:text-white"
+                  >
+                    <SocialIcon network={s.network} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </Reveal>
         {columns.map((col, i) => (
           <Reveal key={col.title} delay={(i + 1) * 100}>

@@ -1,6 +1,7 @@
 import "server-only";
 import { and, count, desc, eq, inArray, sql, sum } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { outer } from "@/db/sql";
 import { getOrderView } from "./queries";
 
 const { orders, orderItems } = schema;
@@ -15,7 +16,7 @@ const orderListFields = {
   paymentStatus: orders.paymentStatus,
   total: orders.total,
   createdAt: orders.createdAt,
-  items: sql<number>`(SELECT COALESCE(SUM(${orderItems.qty}), 0) FROM ${orderItems} WHERE ${orderItems.orderId} = ${orders.id})`.mapWith(Number),
+  items: sql<number>`(SELECT COALESCE(SUM(${orderItems.qty}), 0) FROM ${orderItems} WHERE ${orderItems.orderId} = ${outer(orders.id)})`.mapWith(Number),
 };
 
 export async function getAccountOverview(customerId: number) {
