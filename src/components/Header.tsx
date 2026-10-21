@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -10,7 +9,6 @@ import {
   LayoutGrid,
   Menu,
   Phone,
-  Search,
   ShoppingCart,
   Truck,
   User,
@@ -20,6 +18,7 @@ import { CategoryIcon } from "@/lib/category-icons";
 import { container } from "@/lib/ui";
 import { useCart } from "./CartProvider";
 import { Logo } from "./Logo";
+import { SearchBar } from "./SearchBar";
 import { useStore } from "./StoreProvider";
 import type { MenuLink } from "@/server/menus";
 
@@ -44,51 +43,6 @@ function NavLink({ link, className, onClick, children }: { link: MenuLink; class
       {link.label}
       {children}
     </Link>
-  );
-}
-
-function SearchBar({ className = "" }: { className?: string }) {
-  const router = useRouter();
-  const { categories } = useStore();
-  return (
-    <form
-      role="search"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const data = new FormData(e.currentTarget);
-        const params = new URLSearchParams();
-        const q = String(data.get("q") ?? "").trim();
-        const category = String(data.get("category") ?? "");
-        if (q) params.set("q", q);
-        if (category) params.set("category", category);
-        router.push(`/products${params.size ? `?${params}` : ""}`);
-      }}
-      className={`flex h-11 items-center rounded-lg border border-brand/60 bg-white pr-1 lg:h-12 ${className}`}
-    >
-      <label className="relative hidden h-full items-center border-r border-line sm:flex">
-        <span className="sr-only">Category</span>
-        <select name="category" className="h-full cursor-pointer appearance-none bg-transparent pr-8 pl-4 text-xs font-semibold text-heading outline-none">
-          <option value="">All Categories</option>
-          {categories.map((c) => (
-            <option key={c.slug} value={c.slug}>{c.name}</option>
-          ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-2.5 size-3.5 text-body" />
-      </label>
-      <input
-        type="search"
-        name="q"
-        placeholder="Search for items..."
-        className="h-full min-w-0 flex-1 bg-transparent px-4 text-sm outline-none placeholder:text-body/80"
-      />
-      <button
-        type="submit"
-        aria-label="Search"
-        className="grid size-9 shrink-0 place-items-center rounded-full bg-brand text-white transition hover:bg-brand-dark lg:size-10"
-      >
-        <Search className="size-4" />
-      </button>
-    </form>
   );
 }
 
@@ -190,7 +144,7 @@ export function Header() {
           </Link>
           <SearchBar className="mx-auto hidden max-w-[820px] flex-1 md:flex" />
           <div className="ml-auto flex items-center gap-4 md:ml-0 lg:gap-7">
-            <HeaderAction icon={Heart} label="Wishlist" count={wishlist.length} />
+            <HeaderAction icon={Heart} label="Wishlist" count={wishlist.length} href="/wishlist" />
             <HeaderAction icon={ShoppingCart} label="Cart" count={cartCount} href="/cart" />
             <HeaderAction
               icon={User}

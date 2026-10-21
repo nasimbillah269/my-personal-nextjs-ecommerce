@@ -58,6 +58,9 @@ const actions = {
       wishlist: prev.wishlist.includes(id) ? prev.wishlist.filter((x) => x !== id) : [...prev.wishlist, id],
     }));
   },
+  clearWishlist() {
+    setCartState((prev) => ({ ...prev, wishlist: [] }));
+  },
 };
 
 type CartContextValue = typeof actions & {

@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { CategoryIcon } from "@/lib/category-icons";
+import { nameMatches, searchWords } from "@/lib/search";
 import type { Category, Product } from "@/lib/types";
 import { formatPrice } from "@/lib/ui";
 import { ProductCard } from "./ProductCard";
@@ -79,7 +80,7 @@ function readFilters(params: URLSearchParams, b: Bounds): Filters {
 const discountOf = (p: Product) => (p.oldPrice ? 1 - p.price / p.oldPrice : 0);
 
 function matches(p: Product, f: Filters, ignore?: "category" | "sale") {
-  if (f.q && !p.name.toLowerCase().includes(f.q.toLowerCase())) return false;
+  if (f.q && !nameMatches(p.name, searchWords(f.q))) return false;
   if (ignore !== "category" && f.cats.length && !f.cats.includes(p.category)) return false;
   if (p.price < f.min || p.price > f.max) return false;
   if (ignore !== "sale" && f.sale && !p.oldPrice) return false;

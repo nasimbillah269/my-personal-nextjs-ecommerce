@@ -103,7 +103,7 @@ export function DailyBestSells({ products }: { products: Product[] }) {
                 key={p.id}
                 className="shrink-0 basis-[72%] snap-start sm:basis-[calc((100%-1rem)/2)] lg:basis-[calc((100%-3rem)/3)]"
               >
-                <ProductCard product={p} variant="full" />
+                <ProductCard product={p} />
               </div>
             ))}
           </Carousel>

@@ -39,9 +39,9 @@ export function ProductCardSkeleton() {
       <Sk className="aspect-square w-full rounded-xl" />
       <Sk className="mt-4 h-3.5 w-11/12" />
       <Sk className="mt-2 h-3.5 w-2/3" />
-      <div className="mt-auto flex items-center justify-between pt-5">
+      <div className="mt-auto pt-5">
         <Sk className="h-5 w-16" />
-        <Sk className="h-7 w-14 rounded-md" />
+        <Sk className="mt-4 h-10 w-full rounded-full" />
       </div>
     </div>
   );

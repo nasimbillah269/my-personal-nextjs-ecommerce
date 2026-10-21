@@ -17,7 +17,7 @@ const placeholderCompanyLinks = ["About Us", "Delivery Information", "Privacy Po
 
 const accountColumn = {
   title: "Account",
-  links: [{ label: "My Account", href: "/account" }, { label: "View Cart", href: "/cart" }, ...["My Wishlist", "Track My Order", "How to Order"].map(toLink)],
+  links: [{ label: "My Account", href: "/account" }, { label: "View Cart", href: "/cart" }, { label: "My Wishlist", href: "/wishlist" }, ...["Track My Order", "How to Order"].map(toLink)],
 };
 
 export function Footer() {
@@ -148,7 +148,7 @@ export function MobileBottomNav() {
     { label: "Home", icon: House, href: "/" },
     { label: "Categories", icon: LayoutGrid, href: "/products" },
     { label: "Cart", icon: ShoppingCart, href: "/cart", count: cartCount },
-    { label: "Wishlist", icon: Heart, href: "#", count: wishlist.length },
+    { label: "Wishlist", icon: Heart, href: "/wishlist", count: wishlist.length },
     { label: "Account", icon: User, href: customer ? "/account" : "/login" },
   ];
   return (

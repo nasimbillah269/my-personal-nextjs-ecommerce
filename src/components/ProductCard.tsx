@@ -37,13 +37,7 @@ function ProductImage({ product }: { product: Product }) {
   );
 }
 
-export function ProductCard({
-  product,
-  variant = "compact",
-}: {
-  product: Product;
-  variant?: "compact" | "full";
-}) {
+export function ProductCard({ product }: { product: Product }) {
   const { addToCart, wishlist, toggleWishlist } = useCart();
   const notifyAdded = useCartToast();
   const [added, setAdded] = useState(false);
@@ -104,33 +98,18 @@ export function ProductCard({
         </h3>
       </Link>
 
-      {variant === "compact" ? (
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3">
-          {price}
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={soldOut}
-            className="flex shrink-0 items-center gap-1 rounded-md bg-brand-light px-2.5 py-1.5 text-xs font-bold text-brand transition hover:bg-brand hover:text-white disabled:pointer-events-none disabled:bg-soft disabled:text-body"
-          >
-            {added ? <Check className="size-3.5" /> : <ShoppingCart className="size-3.5" />}
-            {soldOut ? "Sold out" : added ? "Added" : "Add"}
-          </button>
-        </div>
-      ) : (
-        <div className="mt-auto pt-3">
-          {price}
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={soldOut}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-brand-dark py-2.5 text-sm font-bold text-white transition hover:bg-brand disabled:pointer-events-none disabled:bg-body/40"
-          >
-            {added ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
-            {soldOut ? "Sold Out" : added ? "Added to Cart" : "Add To Cart"}
-          </button>
-        </div>
-      )}
+      <div className="mt-auto pt-3">
+        {price}
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={soldOut}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-brand-dark py-2 text-[13px] font-bold whitespace-nowrap sm:mt-4 sm:gap-2 sm:py-2.5 sm:text-sm text-white transition hover:bg-brand disabled:pointer-events-none disabled:bg-body/40"
+        >
+          {added ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
+          {soldOut ? "Sold Out" : added ? "Added to Cart" : "Add To Cart"}
+        </button>
+      </div>
     </article>
   );
 }
