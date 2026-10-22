@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { ALL_PERMISSIONS, type AdminPermission } from "@/lib/constants";
-import { requireAdmin } from "../auth";
+import { requireAdmin, type AdminUser } from "../auth";
 import { firstErrors, type FormState } from "./form-state";
 
 const { admins, roles, customers, subscribers } = schema;
@@ -35,6 +35,21 @@ async function isSuperRole(roleId: number | null) {
   return !!r?.permissions.includes("*");
 }
 
+async function rolePermissions(roleId: number | null): Promise<string[]> {
+  if (!roleId) return [];
+  const [r] = await db.select({ permissions: roles.permissions }).from(roles).where(eq(roles.id, roleId)).limit(1);
+  return r?.permissions ?? [];
+}
+
+/**
+ * Admins who aren't Super Admin may only hand out, or manage admins holding, permissions they have themselves.
+ * Otherwise anyone with the "admins" permission could make themselves Super Admin or take over a Super Admin's account.
+ */
+const withinOwn = (me: AdminUser, permissions: string[]) =>
+  me.isSuperAdmin || (!permissions.includes("*") && permissions.every((p) => me.permissions.includes(p as AdminPermission)));
+
+const OUTRANKED = "Only a Super Admin (or an admin with all of these permissions) can do this.";
+
 /* ---------- Admin users ---------- */
 
 const adminSchema = z.object({
@@ -58,15 +73,17 @@ export async function saveAdmin(_prev: FormState, formData: FormData): Promise<F
     if (!pw.success) return invalid({ password: pw.error.issues[0].message });
   }
 
-  const [role] = await db.select({ id: roles.id }).from(roles).where(eq(roles.id, d.roleId)).limit(1);
+  const [role] = await db.select({ id: roles.id, permissions: roles.permissions }).from(roles).where(eq(roles.id, d.roleId)).limit(1);
   if (!role) return invalid({ roleId: "That role no longer exists." });
+  if (!withinOwn(me, role.permissions)) return invalid({ roleId: `You can’t assign a role with more access than your own. ${OUTRANKED}` });
 
   const [clash] = await db.select({ id: admins.id }).from(admins).where(id ? and(eq(admins.email, d.email), ne(admins.id, id)) : eq(admins.email, d.email)).limit(1);
   if (clash) return invalid({ email: "Another admin already uses this email." });
 
   if (id) {
-    const [existing] = await db.select({ id: admins.id }).from(admins).where(eq(admins.id, id)).limit(1);
+    const [existing] = await db.select({ id: admins.id, roleId: admins.roleId }).from(admins).where(eq(admins.id, id)).limit(1);
     if (!existing) return { ok: false, message: "This admin no longer exists." };
+    if (!withinOwn(me, await rolePermissions(existing.roleId))) return { ok: false, message: `This admin has more access than you. ${OUTRANKED}` };
     if (id === me.id && !d.isActive) return invalid({ isActive: "You can’t deactivate your own account." });
     // Never leave the store without an active Super Admin.
     const staysSuper = d.isActive && (await isSuperRole(d.roleId));
@@ -90,6 +107,7 @@ export async function deleteAdmin(id: number): Promise<FormState> {
   if (id === me.id) return { ok: false, message: "You can’t delete your own account." };
   const [row] = await db.select({ roleId: admins.roleId, isActive: admins.isActive }).from(admins).where(eq(admins.id, id)).limit(1);
   if (!row) return { ok: false, message: "Admin not found." };
+  if (!withinOwn(me, await rolePermissions(row.roleId))) return { ok: false, message: `This admin has more access than you. ${OUTRANKED}` };
   if (row.isActive && (await isSuperRole(row.roleId)) && (await activeSuperAdmins(id)) === 0) {
     return { ok: false, message: "You can’t delete the last active Super Admin." };
   }
@@ -107,16 +125,27 @@ const roleSchema = z.object({
 });
 
 export async function saveRole(_prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin("admins");
+  const me = await requireAdmin("admins");
   const id = Number(formData.get("id")) || null;
   const parsed = roleSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(firstErrors(parsed.error));
-  const permissions = formData.getAll("permissions").map(String).filter((p): p is AdminPermission => ALL_PERMISSIONS.includes(p as AdminPermission));
+  let permissions = formData.getAll("permissions").map(String).filter((p): p is AdminPermission => ALL_PERMISSIONS.includes(p as AdminPermission));
 
+  let existingPermissions: string[] = [];
   if (id) {
-    const [existing] = await db.select({ isSystem: roles.isSystem }).from(roles).where(eq(roles.id, id)).limit(1);
+    const [existing] = await db.select({ isSystem: roles.isSystem, permissions: roles.permissions }).from(roles).where(eq(roles.id, id)).limit(1);
     if (!existing) return { ok: false, message: "This role no longer exists." };
     if (existing.isSystem) return { ok: false, message: "The Super Admin role can’t be changed." };
+    existingPermissions = existing.permissions;
+  }
+  if (!me.isSuperAdmin) {
+    // Only permissions the editor holds can be switched on or off; the rest keep their saved state.
+    const mine = (p: string) => me.permissions.includes(p as AdminPermission);
+    const kept = existingPermissions.filter((p): p is AdminPermission => !mine(p) && ALL_PERMISSIONS.includes(p as AdminPermission));
+    if (permissions.some((p) => !mine(p) && !existingPermissions.includes(p))) {
+      return { ok: false, message: `You can only grant permissions you have yourself. ${OUTRANKED}` };
+    }
+    permissions = [...permissions.filter(mine), ...kept];
   }
   const [clash] = await db.select({ id: roles.id }).from(roles).where(id ? and(eq(roles.name, parsed.data.name), ne(roles.id, id)) : eq(roles.name, parsed.data.name)).limit(1);
   if (clash) return invalid({ name: "A role with this name already exists." });

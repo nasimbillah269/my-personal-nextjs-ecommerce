@@ -35,7 +35,7 @@ const productSchema = z.object({
     .max(300)
     .transform((v) => v || null),
   imageCreditUrl: z
-    .union([z.literal(""), z.url("Enter a full link starting with https://").max(500)])
+    .union([z.literal(""), z.url({ protocol: /^https?$/, error: "Enter a full link starting with https://" }).max(500)])
     .transform((v) => v || null),
   brand: z.string().trim().min(1).max(120),
   origin: z.string().trim().min(1).max(120),

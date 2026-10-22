@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { createSession, destroySession } from "../auth";
+import { rateLimit } from "../rate-limit";
 
 export type LoginState = { error?: string } | null;
 
@@ -23,6 +24,8 @@ const credentials = z.object({
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = credentials.safeParse({ email: formData.get("email"), password: formData.get("password") });
   if (!parsed.success) return { error: "Enter a valid email and password." };
+  // Per-IP cap on top of the per-email lockout, so one client can't try many emails.
+  if (!(await rateLimit("admin-login", 20, 15 * 60_000))) return { error: "Too many attempts. Please try again in 15 minutes." };
 
   const email = parsed.data.email.toLowerCase();
   const record = failures.get(email);

@@ -34,7 +34,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${quicksand.variable} ${hindSiliguri.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before React hydrates. */}
+      <body className="flex min-h-full flex-col font-sans" suppressHydrationWarning>
         {children}
       </body>
     </html>

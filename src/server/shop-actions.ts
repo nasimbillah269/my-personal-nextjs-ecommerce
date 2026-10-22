@@ -11,12 +11,15 @@ import { LAST_ORDER_COOKIE } from "./constants";
 import { findValidCoupon, type CouponCheck } from "./coupons";
 import { getCustomer } from "./customer-auth";
 import { getSettings } from "./queries";
+import { rateLimit } from "./rate-limit";
 
 
 export async function checkCoupon(code: string, subtotal: number): Promise<CouponCheck> {
   if (typeof code !== "string" || code.length > 40 || !Number.isFinite(subtotal)) {
     return { ok: false, error: "This coupon code is not valid." };
   }
+  // Stops guessing coupon codes by brute force.
+  if (!(await rateLimit("coupon", 20, 10 * 60_000))) return { ok: false, error: "Too many tries. Please wait a few minutes." };
   return findValidCoupon(code, Math.max(0, Math.round(subtotal)));
 }
 
@@ -69,6 +72,8 @@ class StockError extends Error {}
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const parsed = orderInput.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Please check your details and try again." };
+  // Fake orders reserve stock, so cap how many one visitor can place.
+  if (!(await rateLimit("order", 10, 60 * 60_000))) return { ok: false, error: "Too many orders from your connection. Please try again later or call us." };
   const o = parsed.data;
 
   // Load current products + variants for everything in the cart.

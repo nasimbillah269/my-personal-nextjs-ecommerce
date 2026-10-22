@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { firstErrors, type FormState } from "./admin/form-state";
 import { canComment, commentParentOk } from "./blog";
+import { rateLimit } from "./rate-limit";
 
 const commentSchema = z.object({
   postId: z.coerce.number().int().positive(),
@@ -18,6 +19,8 @@ const commentSchema = z.object({
 export async function submitComment(_prev: FormState, formData: FormData): Promise<FormState> {
   // Honeypot: real visitors never see or fill this field.
   if (formData.get("website")) return { ok: true, message: "Thanks! Your comment is awaiting approval." };
+
+  if (!(await rateLimit("comment", 10, 10 * 60_000))) return { ok: false, message: "Too many requests. Please wait a few minutes and try again." };
 
   const parsed = commentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };

@@ -38,12 +38,37 @@ export function validateImage(
   return null;
 }
 
+/** True when the file's first bytes match its declared image type (the browser-sent type alone can be faked). */
+function looksLikeImage(buf: Buffer, type: string) {
+  const ascii = (start: number, end: number) => buf.subarray(start, end).toString("latin1");
+  switch (type) {
+    case "image/jpeg":
+      return buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+    case "image/png":
+      return buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    case "image/webp":
+      return ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP";
+    case "image/avif":
+      // ISO-BMFF container; the brand may be "avif", "avis" or "mif1".
+      return ascii(4, 8) === "ftyp";
+    case "image/gif":
+      return ascii(0, 6) === "GIF87a" || ascii(0, 6) === "GIF89a";
+    case "image/x-icon":
+    case "image/vnd.microsoft.icon":
+      return buf[0] === 0 && buf[1] === 0 && buf[2] === 1 && buf[3] === 0;
+    default:
+      return false;
+  }
+}
+
 /** Saves the file and returns its public URL, e.g. /media/products/abc.webp */
 export async function saveImage(file: File, folder: "products" | "branding" | "sliders" | "posts" | "pages" | "galleries" | "clients" | "brands"): Promise<string> {
+  const data = Buffer.from(await file.arrayBuffer());
+  if (!looksLikeImage(data, file.type)) throw new Error("The uploaded file is not a valid image.");
   const dir = path.join(UPLOAD_ROOT, folder);
   await mkdir(dir, { recursive: true });
   const name = `${randomUUID()}${FAVICON_TYPES[file.type] ?? GALLERY_IMAGE_TYPES[file.type]}`;
-  await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+  await writeFile(path.join(dir, name), data);
   return `/media/${folder}/${name}`;
 }
 

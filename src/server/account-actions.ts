@@ -9,6 +9,7 @@ import { db, schema } from "@/db";
 import { divisions, isValidBdPhone, normalizePhone } from "@/lib/checkout";
 import { firstErrors, type FormState } from "./admin/form-state";
 import { createCustomerSession, destroyCustomerSession, requireCustomer, safeNext } from "./customer-auth";
+import { rateLimit } from "./rate-limit";
 
 const { customers } = schema;
 
@@ -47,6 +48,7 @@ const registerSchema = z
   .refine((d) => d.password === d.confirm, { path: ["confirm"], message: "Passwords don’t match" });
 
 export async function register(_prev: FormState, formData: FormData): Promise<FormState> {
+  if (!(await rateLimit("register", 5, 60 * 60_000))) return { ok: false, message: "Too many requests. Please wait a few minutes and try again." };
   const parsed = registerSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };
   const d = parsed.data;
@@ -79,6 +81,8 @@ const loginSchema = z.object({
 });
 
 export async function customerLogin(_prev: FormState, formData: FormData): Promise<FormState> {
+  // Per-IP cap on top of the per-account lockout, so one client can't try many accounts.
+  if (!(await rateLimit("customer-login", 20, 15 * 60_000))) return { ok: false, message: "Too many requests. Please wait a few minutes and try again." };
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, message: "Please fix the highlighted fields.", errors: firstErrors(parsed.error) };
 

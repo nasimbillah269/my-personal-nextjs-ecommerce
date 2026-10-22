@@ -122,7 +122,7 @@ export const getProductPage = cache(async (slug: string) => {
     brand: row.p.brand,
     origin: row.p.origin,
     description: parseDescription(row.p.description),
-    imageCredit: row.p.image && row.p.imageCredit ? { text: row.p.imageCredit, url: row.p.imageCreditUrl } : null,
+    imageCredit: row.p.image && row.p.imageCredit ? { text: row.p.imageCredit, url: row.p.imageCreditUrl && /^https?:\/\//i.test(row.p.imageCreditUrl) ? row.p.imageCreditUrl : null } : null,
   };
   return {
     product: toProduct(row.p, row.categorySlug, variants[0]),

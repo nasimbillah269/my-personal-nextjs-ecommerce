@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import type { FormState } from "./admin/form-state";
+import { rateLimit } from "./rate-limit";
 
 const emailSchema = z.email().max(191);
 
@@ -11,6 +12,8 @@ const emailSchema = z.email().max(191);
 export async function subscribe(_prev: FormState, formData: FormData): Promise<FormState> {
   // Honeypot: people never see this field.
   if (formData.get("company")) return { ok: true, message: "Thanks for subscribing!" };
+
+  if (!(await rateLimit("subscribe", 10, 60 * 60_000))) return { ok: false, message: "Too many requests. Please wait a few minutes and try again." };
 
   const parsed = emailSchema.safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!parsed.success) return { ok: false, message: "Please enter a valid email address." };
