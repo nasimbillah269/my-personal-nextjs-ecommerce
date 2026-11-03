@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Heart, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/ui";
@@ -41,6 +41,8 @@ export function ProductCard({ product }: { product: Product }) {
   const { addToCart, wishlist, toggleWishlist } = useCart();
   const notifyAdded = useCartToast();
   const [added, setAdded] = useState(false);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const cartIconRef = useRef<HTMLSpanElement>(null);
   const inWishlist = wishlist.includes(product.id);
   const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
 
@@ -58,8 +60,70 @@ export function ProductCard({ product }: { product: Product }) {
     };
     addToCart(item);
     notifyAdded(item);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
+    flyToCart(() => {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1200);
+    });
+  };
+
+  // Clones the product image and flies it into the button's cart icon, then bounces the icon.
+  const flyToCart = (onDone: () => void) => {
+    const source = imageRef.current;
+    const icon = cartIconRef.current;
+    if (!source || !icon || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onDone();
+      return;
+    }
+
+    const from = source.getBoundingClientRect();
+    const to = icon.getBoundingClientRect();
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const scale = Math.max(to.width / from.width, 0.05);
+
+    const clone = source.cloneNode(true) as HTMLDivElement;
+    Object.assign(clone.style, {
+      position: "fixed",
+      top: `${from.top}px`,
+      left: `${from.left}px`,
+      width: `${from.width}px`,
+      height: `${from.height}px`,
+      margin: "0",
+      zIndex: "9999",
+      pointerEvents: "none",
+      overflow: "hidden",
+      borderRadius: "12px",
+      boxShadow: "0 10px 30px -10px rgba(19,162,168,0.5)",
+    });
+    document.body.appendChild(clone);
+
+    const flight = clone.animate(
+      [
+        { transform: "translate(0, 0) scale(1)", opacity: 1, borderRadius: "12px" },
+        {
+          transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 60}px) scale(${(1 + scale) / 2.5})`,
+          opacity: 0.95,
+          borderRadius: "50%",
+          offset: 0.55,
+        },
+        { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 0.4, borderRadius: "50%" },
+      ],
+      { duration: 750, easing: "cubic-bezier(0.55, 0, 0.45, 1)", fill: "forwards" },
+    );
+
+    flight.onfinish = () => {
+      clone.remove();
+      icon.animate(
+        [
+          { transform: "scale(1) rotate(0deg)" },
+          { transform: "scale(1.45) rotate(-12deg)" },
+          { transform: "scale(0.9) rotate(6deg)" },
+          { transform: "scale(1) rotate(0deg)" },
+        ],
+        { duration: 400, easing: "ease-out" },
+      );
+      onDone();
+    };
   };
 
   const price = (
@@ -92,7 +156,9 @@ export function ProductCard({ product }: { product: Product }) {
       </button>
 
       <Link href={`/products/${product.id}`} className="block">
-        <ProductImage product={product} />
+        <div ref={imageRef}>
+          <ProductImage product={product} />
+        </div>
         <h3 className="mt-3 line-clamp-2 min-h-10 text-[13px] leading-5 font-bold text-heading transition group-hover:text-brand sm:text-sm">
           {product.name}
         </h3>
@@ -106,7 +172,9 @@ export function ProductCard({ product }: { product: Product }) {
           disabled={soldOut}
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-full bg-brand-dark py-2 text-[13px] font-bold whitespace-nowrap sm:mt-4 sm:gap-2 sm:py-2.5 sm:text-sm text-white transition hover:bg-brand disabled:pointer-events-none disabled:bg-body/40"
         >
-          {added ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
+          <span ref={cartIconRef} className="inline-flex">
+            {added ? <Check className="size-4" /> : <ShoppingCart className="size-4" />}
+          </span>
           {soldOut ? "Sold Out" : added ? "Added to Cart" : "Add To Cart"}
         </button>
       </div>
